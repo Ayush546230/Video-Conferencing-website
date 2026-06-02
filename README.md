@@ -1,198 +1,172 @@
-# 🔐 AuthCraft — Modern Authentication Showcase
+# 🔐 AuthCraft — My Cool Authentication Project
 
-A full-stack MERN application demonstrating two production-grade, **100% free** authentication methods:
+Hi everyone! This is a full-stack MERN project I built to show off three really awesome, **100% free** ways to log into an app:
 
-- **Google OAuth 2.0 + OIDC** — via Google Identity Services (GIS)
-- **WebAuthn Passkeys (FIDO2)** — biometrics, PIN, Touch ID, Face ID, Windows Hello
+- **Google Login** — Just click a button to log in with your Google account.
+- **Passkeys** — Log in using your fingerprint, Face ID, or Windows Hello (super safe and no passwords!).
+- **Push Notification Auth** — Send a notification to your phone and just tap "Approve" to log in on your computer!
 
-**No proprietary SDKs. No per-user fees. No passwords stored.**
+I wanted to build this without paying for any expensive third-party tools, and without storing any dangerous passwords.
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ What I Used to Build This
 
-| Layer | Technology |
+| Part | What I used |
 |-------|-----------|
-| Frontend | React 18 + Vite + React Router |
-| Backend | Node.js + Express 5 (ESM) |
-| Database | MongoDB + Mongoose |
-| Google Auth | google-auth-library (MIT, free) |
-| Passkeys | @simplewebauthn/server + @simplewebauthn/browser (MIT, free) |
-| Security | Helmet, express-rate-limit, CORS, JWT, HttpOnly sessions |
+| Frontend | React 18, Vite, and React Router |
+| Backend | Node.js with Express 5 |
+| Database | MongoDB and Mongoose |
+| Google Auth | `google-auth-library` (free!) |
+| Passkeys | `@simplewebauthn` (free!) |
+| Push Notifications | Web Push API (VAPID) (free!) |
+| Security | Helmet, rate limits, CORS, JWTs, and secure cookies |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 How to Run It on Your Computer
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (local or [MongoDB Atlas free tier](https://www.mongodb.com/cloud/atlas/register))
-- A free Google Cloud account (for Google OAuth)
+### What you need first
+- Node.js (version 18 or higher)
+- MongoDB (running locally or a free cloud account on Atlas)
+- A free Google Cloud account for the Google login part
 
-### 1. Clone & Install
+### 1. Download and Install
 
 ```bash
-# Install root dependencies
+# Install the main stuff
 npm install
 
-# Install all dependencies
+# Install everything for frontend and backend
 npm run install:all
 ```
 
-### 2. Configure Backend
+### 2. Set up the Backend
 
 ```bash
 cd backend
 cp .env.example .env
-# Edit .env with your values
+# Open the .env file and put your own database link and secret keys in there
 ```
 
-### 3. Configure Frontend
+### 3. Set up the Frontend
 
 ```bash
 cd frontend
 cp .env.example .env
-# Edit .env — add VITE_GOOGLE_CLIENT_ID
+# Open this .env file and add your VITE_GOOGLE_CLIENT_ID and VAPID keys
 ```
 
-### 4. Get Free Google OAuth Credentials
+### 4. How to get the Google Keys (for free)
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (or use existing)
-3. Navigate to **APIs & Services → Credentials**
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Make a new project
+3. Go to **APIs & Services → Credentials**
 4. Click **Create Credentials → OAuth 2.0 Client ID**
-5. Application type: **Web application**
-6. Add Authorized JavaScript origins:
-   - `http://localhost:3000`
-7. Add Authorized redirect URIs:
-   - `http://localhost:3000`
-8. Copy the **Client ID** → paste into both `.env` files
+5. Pick **Web application**
+6. Add `http://localhost:3000` to the Authorized JavaScript origins
+7. Add `http://localhost:3000` to the Authorized redirect URIs
+8. Copy the **Client ID** and paste it into both of your `.env` files.
 
-**Cost: $0 — Google OAuth is completely free**
-
-### 5. Run the App
+### 5. Start the App!
 
 ```bash
-# From root directory — runs both frontend & backend
+# Make sure you are in the main project folder
 npm run dev
 ```
 
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+- See the frontend here: http://localhost:3000
+- The backend API runs here: http://localhost:5000
 
 ---
 
-## 🔑 Authentication Methods
+## 🔑 How the Logins Work
 
-### Google OAuth 2.0 + OIDC
-- Uses [Google Identity Services](https://developers.google.com/identity) (free)
-- One Tap or Sign-In button UI
-- Backend verifies JWT ID token with Google's public keys (JWKS)
-- No redirect flows needed — ID token approach is simpler and more secure
+### Google Login
+- It uses Google's free sign-in tools.
+- It shows that neat "One Tap" popup or a regular button.
+- The backend checks the token Google gives us to make sure it's real. It's really simple!
 
-### WebAuthn Passkeys (FIDO2)
-- Uses [@simplewebauthn](https://simplewebauthn.dev/) (MIT license, free)
-- Supports: Touch ID, Face ID, Windows Hello, Android biometrics, device PIN
-- Discoverable credentials (no email needed for login)
-- Multi-device passkeys sync via iCloud Keychain / Google Password Manager
-- All cryptography: ES256 (P-256) and RS256
+### Passkeys
+- You can use your phone's fingerprint, Face ID, or Windows Hello.
+- It's super secure because it doesn't even use passwords.
+- It syncs across your devices if you use iCloud or Google Password Manager.
 
----
-
-## 🛡️ Security Features
-
-- **JWT** — RS256 signed, 7-day expiry
-- **HttpOnly sessions** — WebAuthn challenges stored server-side, never exposed to JS
-- **Rate limiting** — 20 auth requests per 15 minutes per IP
-- **CORS** — configured to your frontend URL only
-- **Helmet** — sets security headers (CSP, HSTS, X-Frame-Options, etc.)
-- **Counter-based replay prevention** — WebAuthn counters prevent credential replay
-- **Origin binding** — passkeys only work on your exact domain (phishing-proof)
+### Push Notification Auth
+- If you're trying to log in on your laptop, the app sends a push notification to your phone.
+- You just tap "Yes, it's me" on your phone, and boom, your laptop logs in!
+- It uses the standard Web Push API so we don't have to pay for SMS or anything.
 
 ---
 
-## 📁 Project Structure
+## 🛡️ How I Made It Secure
+
+- **JWTs** — Special tokens that expire in 7 days so you don't stay logged in forever if you lose your device.
+- **Secure Cookies** — The backend hides some important data in cookies so hackers can't easily steal it.
+- **Rate limiting** — Stops bad guys from trying to guess stuff too fast (only 20 tries per 15 minutes).
+- **Helmet & CORS** — Extra locks on the server to make sure only our app can talk to it.
+
+---
+
+## 📁 How My Files are Organized
 
 ```
 auth-showcase/
 ├── backend/
 │   ├── controllers/
-│   │   ├── authController.js      # Google OAuth logic
-│   │   └── passkeyController.js   # WebAuthn registration + auth
+│   │   ├── authController.js      # Google stuff
+│   │   ├── passkeyController.js   # Fingerprint stuff
+│   │   └── pushAuthController.js  # Push notification stuff!
 │   ├── middleware/
-│   │   └── auth.js                # JWT verification middleware
+│   │   └── auth.js                # Checks if you are logged in
 │   ├── models/
-│   │   └── User.js                # User schema with passkey subdocs
+│   │   └── User.js                # Database layout for users
 │   ├── routes/
-│   │   ├── auth.js                # /api/auth/* routes
-│   │   └── passkeys.js            # /api/passkeys/* routes
-│   ├── server.js                  # Express app entry
+│   │   ├── auth.js                # Auth routes
+│   │   ├── passkeys.js            # Passkey routes
+│   │   └── pushAuth.js            # Push routes
+│   ├── server.js                  # The main backend file
 │   └── .env.example
 └── frontend/
     └── src/
         ├── context/
-        │   └── AuthContext.jsx    # Auth state + API calls
+        │   └── AuthContext.jsx    # Keeps track of who is logged in
         ├── pages/
-        │   ├── HomePage.jsx       # Auth method explanations
-        │   ├── LoginPage.jsx      # Google + Passkey login UI
-        │   └── DashboardPage.jsx  # Deep dive + account management
+        │   ├── HomePage.jsx       # Explains the app
+        │   ├── LoginPage.jsx      # Where you actually log in
+        │   └── DashboardPage.jsx  # Where you go after you log in
         ├── components/
         │   └── Navbar.jsx
-        ├── App.jsx                # Router + route guards
-        └── index.css              # White + cream design system
+        ├── App.jsx                # Connects all the pages
+        └── index.css              # Makes it look pretty!
 ```
 
 ---
 
-## 🌐 API Endpoints
+## 🌐 The API Routes I Made
 
-| Method | Path | Description |
+| Method | Path | What it does |
 |--------|------|-------------|
-| POST | `/api/auth/google` | Verify Google ID token |
-| GET | `/api/auth/me` | Get current user (JWT required) |
-| POST | `/api/passkeys/register/options` | Get WebAuthn registration challenge |
-| POST | `/api/passkeys/register/verify` | Verify + save passkey |
-| POST | `/api/passkeys/auth/options` | Get WebAuthn auth challenge |
-| POST | `/api/passkeys/auth/verify` | Verify passkey + issue JWT |
-| DELETE | `/api/passkeys/:credentialID` | Remove a passkey (JWT required) |
-| GET | `/api/health` | Health check |
+| POST | `/api/auth/google` | Checks the Google token |
+| GET | `/api/auth/me` | Tells you who is logged in |
+| POST | `/api/passkeys/register/...` | Saves a new passkey |
+| POST | `/api/passkeys/auth/...` | Logs you in with a passkey |
+| POST | `/api/push-auth/request` | Sends the notification to your phone |
+| POST | `/api/push-auth/respond` | When you tap "Yes" on your phone |
+| POST | `/api/push-auth/status` | The laptop checks if you tapped "Yes" |
+| GET | `/api/health` | Just checks if the server is alive |
 
 ---
 
-## 📱 Mobile Compatibility
-
-### Web (PWA)
-All auth methods work on mobile browsers:
-- **Safari on iOS 16+** — Touch ID / Face ID passkeys (iCloud Keychain sync)
-- **Chrome on Android** — Fingerprint / PIN passkeys (Google Password Manager sync)
-- **Google OAuth** — Works in all mobile browsers via popup or redirect
-
-### React Native / Capacitor
-To extend to a native mobile app:
-- **Google OAuth**: Use `@react-native-google-signin/google-signin` (free)
-- **Passkeys**: Use `react-native-passkey` or native APIs (iOS AuthenticationServices, Android Credential Manager)
-- The backend APIs remain identical — only the frontend auth initiation changes
-
----
-
-## 💰 Cost Summary
+## 💰 How Much This Costs
 
 | Feature | Cost |
 |---------|------|
-| Google OAuth (via GIS + google-auth-library) | **Free** |
-| WebAuthn / Passkeys (@simplewebauthn) | **Free** |
-| Web Push Notifications (VAPID) | **Free** |
-| MongoDB Atlas (up to 512MB) | **Free** |
-| Node.js / Express | **Free** |
-| **Total** | **$0/month** |
+| Google Login | **Free!** |
+| Passkeys | **Free!** |
+| Push Notifications | **Free!** |
+| Database (MongoDB Atlas) | **Free!** |
+| Node.js / Express | **Free!** |
+| **Total** | **$0/month!** |
 
----
-
-## 📖 Resources
-
-- [WebAuthn Spec (W3C)](https://www.w3.org/TR/webauthn-2/)
-- [FIDO Alliance](https://fidoalliance.org/passkeys/)
-- [SimpleWebAuthn Docs](https://simplewebauthn.dev/)
-- [Google Identity Services](https://developers.google.com/identity/gsi/web)
-- [Web Push Protocol (RFC 8030)](https://www.rfc-editor.org/rfc/rfc8030)
-- [VAPID (RFC 8292)](https://www.rfc-editor.org/rfc/rfc8292)
+Hope you like my project! Let me know if you find any bugs!

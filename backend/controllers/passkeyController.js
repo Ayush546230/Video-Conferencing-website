@@ -12,12 +12,7 @@ const RP_NAME = process.env.WEBAUTHN_RP_NAME || 'Auth Showcase';
 const RP_ID = process.env.WEBAUTHN_RP_ID || 'localhost';
 const ORIGIN = process.env.WEBAUTHN_ORIGIN || 'http://localhost:3000';
 
-// ─── REGISTRATION ──────────────────────────────────────────
 
-/**
- * Step 1: Generate registration challenge
- * User must be logged in (via Google) OR provide email to start passkey registration
- */
 export const generateRegisterOptions = async (req, res) => {
   try {
     const { email, name } = req.body;
