@@ -7,10 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let privateKey;
-try {
-  privateKey = fs.readFileSync(path.join(__dirname, '..', 'jaas_private.pk'), 'utf8');
-} catch (error) {
-  console.warn('JaaS Private Key not found. Video meeting JWT generation will fail.');
+if (process.env.JAAS_PRIVATE_KEY) {
+  // Render sometimes passes multi-line secrets with literal \n strings
+  privateKey = process.env.JAAS_PRIVATE_KEY.replace(/\\n/g, '\n');
+} else {
+  try {
+    privateKey = fs.readFileSync(path.join(__dirname, '..', 'jaas_private.pk'), 'utf8');
+  } catch (error) {
+    console.warn('JaaS Private Key not found in Env or File. Video meeting JWT generation will fail.');
+  }
 }
 
 /**
