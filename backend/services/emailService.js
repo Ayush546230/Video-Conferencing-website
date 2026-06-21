@@ -133,17 +133,21 @@ function getMeetingReminderHTML(meeting) {
 }
 
 // ─── Generate ICS content ───────────────────────────────────
-function generateICS(meeting) {
+function generateICS(meeting, senderName) {
   const fmtDate = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const start = fmtDate(meeting.startTime);
   const end = meeting.endTime ? fmtDate(meeting.endTime) : fmtDate(new Date(new Date(meeting.startTime).getTime() + 3600000));
   const dtStamp = fmtDate(new Date());
   const uid = meeting._id ? meeting._id.toString() : `meeting-${new Date().getTime()}`;
+  const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//hi by aiRender//Video Conference//EN',
+    'METHOD:REQUEST',
     'BEGIN:VEVENT',
     `UID:${uid}`,
+    `ORGANIZER;CN="${senderName}":mailto:${senderEmail}`,
+    `SEQUENCE:0`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${start}`, `DTEND:${end}`,
     `SUMMARY:${meeting.title}`,
@@ -161,7 +165,7 @@ export async function sendMeetingInvite(meeting, recipientEmail, senderName) {
     return;
   }
 
-  const icsContent = generateICS(meeting);
+  const icsContent = generateICS(meeting, senderName);
   const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
   const payload = {
@@ -228,18 +232,21 @@ function getMeetingCancellationHTML(meeting, senderName) {
 }
 
 // ─── Generate ICS Cancellation ──────────────────────────────
-function generateICSCancellation(meeting) {
+function generateICSCancellation(meeting, senderName) {
   const fmtDate = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const start = fmtDate(meeting.startTime);
   const end = meeting.endTime ? fmtDate(meeting.endTime) : fmtDate(new Date(new Date(meeting.startTime).getTime() + 3600000));
   const dtStamp = fmtDate(new Date());
   const uid = meeting._id ? meeting._id.toString() : `meeting-${new Date().getTime()}`;
+  const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//hi by aiRender//Video Conference//EN',
     'METHOD:CANCEL',
     'BEGIN:VEVENT',
     `UID:${uid}`,
+    `ORGANIZER;CN="${senderName}":mailto:${senderEmail}`,
+    `SEQUENCE:1`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${start}`, `DTEND:${end}`,
     `STATUS:CANCELLED`,
@@ -255,7 +262,7 @@ export async function sendMeetingCancellation(meeting, recipientEmail, senderNam
     return;
   }
 
-  const icsContent = generateICSCancellation(meeting);
+  const icsContent = generateICSCancellation(meeting, senderName);
   const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
   const payload = {
