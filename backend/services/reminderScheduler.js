@@ -78,36 +78,43 @@ async function processReminders() {
       const triggerTime = getReminderTriggerTime(meeting);
 
       if (now >= triggerTime) {
-        console.log(`⏰ Triggering reminder for "${meeting.title}" (starts at ${meeting.startTime})`);
+        try {
+          console.log(`⏰ Triggering reminder for "${meeting.title}" (starts at ${meeting.startTime})`);
 
-        // Get the meeting owner
-        const owner = await User.findById(meeting.userId);
-        if (!owner) continue;
+          // Get the meeting owner
+          const owner = await User.findById(meeting.userId);
+          
+          if (owner) {
+            const notifType = meeting.notification?.type || 'As Notification';
 
-        const notifType = meeting.notification?.type || 'As Notification';
-
-        if (notifType === 'As Email') {
-          // Send email to the owner
-          await sendMeetingReminder(meeting.toJSON(), owner.email).catch(err =>
-            console.error(`Email reminder failed for ${owner.email}:`, err.message)
-          );
-        } else {
-          // Send push notification to owner
-          await sendPushReminder(meeting, owner);
-        }
-
-        // ALWAYS send email to all participants
-        for (const p of meeting.participants) {
-          if (p.email && p.email !== owner.email) {
-            await sendMeetingReminder(meeting.toJSON(), p.email).catch(err =>
-              console.error(`Email reminder failed for ${p.email}:`, err.message)
-            );
+            if (notifType === 'As Email') {
+              // Send email to the owner
+              await sendMeetingReminder(meeting.toJSON(), owner.email).catch(err =>
+                console.error(`Email reminder failed for ${owner.email}:`, err.message)
+              );
+            } else {
+              // Send push notification to owner
+              await sendPushReminder(meeting, owner);
+            }
           }
-        }
 
-        // Mark as reminded
-        meeting.reminderSent = true;
-        await meeting.save();
+          // ALWAYS send email to all participants
+          for (const p of meeting.participants) {
+            if (p.email && (!owner || p.email !== owner.email)) {
+              await sendMeetingReminder(meeting.toJSON(), p.email).catch(err =>
+                console.error(`Email reminder failed for ${p.email}:`, err.message)
+              );
+            }
+          }
+
+          // Mark as reminded using updateOne to bypass full document validation
+          await Meeting.updateOne({ _id: meeting._id }, { $set: { reminderSent: true } });
+        } catch (innerErr) {
+          console.error(`Reminder failed for meeting ${meeting._id}:`, innerErr);
+          // Force update so we don't get stuck in an infinite loop
+          await Meeting.updateOne({ _id: meeting._id }, { $set: { reminderSent: true } })
+            .catch(e => console.error(`Failed to force update for meeting ${meeting._id}:`, e));
+        }
       }
     }
   } catch (err) {
