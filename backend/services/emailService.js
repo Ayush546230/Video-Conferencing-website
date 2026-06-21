@@ -1,29 +1,34 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// ─── Create Transporter ─────────────────────────────────────
-let transporter = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn('⚠️  SMTP not configured. Email sending is disabled. Set SMTP_USER and SMTP_PASS in .env');
-    return null;
+// ─── Brevo API Helper ─────────────────────────────────────────
+async function sendBrevoEmail(payload) {
+  if (!process.env.BREVO_API_KEY) {
+    console.warn('⚠️  BREVO_API_KEY not configured. Email sending is disabled.');
+    return;
   }
 
-  transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+      },
+      body: JSON.stringify(payload),
+    });
 
-  return transporter;
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Brevo API Error:', errorData);
+    } else {
+      const data = await response.json();
+      console.log('📧 Brevo Email sent successfully, messageId:', data.messageId);
+    }
+  } catch (error) {
+    console.error('Failed to send email via Brevo API:', error);
+  }
 }
 
 // ─── HTML Email Template ────────────────────────────────────
@@ -151,45 +156,45 @@ function generateICS(meeting) {
 
 // ─── Send Meeting Invite ────────────────────────────────────
 export async function sendMeetingInvite(meeting, recipientEmail, senderName) {
-  const transport = getTransporter();
-  if (!transport) {
-    console.warn(`📧 Email skipped (SMTP not configured): Invite to ${recipientEmail} for "${meeting.title}"`);
+  if (!process.env.BREVO_API_KEY) {
+    console.warn(`📧 Email skipped (Brevo API not configured): Invite to ${recipientEmail} for "${meeting.title}"`);
     return;
   }
 
   const icsContent = generateICS(meeting);
+  const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
-  await transport.sendMail({
-    from: process.env.SMTP_FROM || `"hi Video" <${process.env.SMTP_USER}>`,
-    to: recipientEmail,
+  const payload = {
+    sender: { name: 'hi Video', email: senderEmail },
+    to: [{ email: recipientEmail }],
     subject: `Meeting Invitation: ${meeting.title}`,
-    html: getMeetingInviteHTML(meeting, senderName),
-    icalEvent: {
-      filename: 'invite.ics',
-      method: 'REQUEST',
-      content: icsContent,
-    },
-  });
+    htmlContent: getMeetingInviteHTML(meeting, senderName),
+    attachment: [{
+      name: 'invite.ics',
+      content: Buffer.from(icsContent).toString('base64')
+    }]
+  };
 
-  console.log(`📧 Invite sent to ${recipientEmail} for "${meeting.title}"`);
+  await sendBrevoEmail(payload);
 }
 
 // ─── Send Meeting Reminder ──────────────────────────────────
 export async function sendMeetingReminder(meeting, recipientEmail) {
-  const transport = getTransporter();
-  if (!transport) {
-    console.warn(`📧 Reminder skipped (SMTP not configured): to ${recipientEmail} for "${meeting.title}"`);
+  if (!process.env.BREVO_API_KEY) {
+    console.warn(`📧 Reminder skipped (Brevo API not configured): to ${recipientEmail} for "${meeting.title}"`);
     return;
   }
+  
+  const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
-  await transport.sendMail({
-    from: process.env.SMTP_FROM || `"hi Video" <${process.env.SMTP_USER}>`,
-    to: recipientEmail,
+  const payload = {
+    sender: { name: 'hi Video', email: senderEmail },
+    to: [{ email: recipientEmail }],
     subject: `Reminder: ${meeting.title} is starting soon`,
-    html: getMeetingReminderHTML(meeting),
-  });
+    htmlContent: getMeetingReminderHTML(meeting),
+  };
 
-  console.log(`📧 Reminder sent to ${recipientEmail} for "${meeting.title}"`);
+  await sendBrevoEmail(payload);
 }
 
 // ─── HTML Cancellation Email Template ───────────────────────
@@ -245,25 +250,24 @@ function generateICSCancellation(meeting) {
 
 // ─── Send Meeting Cancellation ──────────────────────────────
 export async function sendMeetingCancellation(meeting, recipientEmail, senderName) {
-  const transport = getTransporter();
-  if (!transport) {
-    console.warn(`📧 Email skipped (SMTP not configured): Cancellation to ${recipientEmail} for "${meeting.title}"`);
+  if (!process.env.BREVO_API_KEY) {
+    console.warn(`📧 Email skipped (Brevo API not configured): Cancellation to ${recipientEmail} for "${meeting.title}"`);
     return;
   }
 
   const icsContent = generateICSCancellation(meeting);
+  const senderEmail = process.env.SMTP_USER || 'ayush.airender@gmail.com';
 
-  await transport.sendMail({
-    from: process.env.SMTP_FROM || `"hi Video" <${process.env.SMTP_USER}>`,
-    to: recipientEmail,
+  const payload = {
+    sender: { name: 'hi Video', email: senderEmail },
+    to: [{ email: recipientEmail }],
     subject: `Cancelled: ${meeting.title}`,
-    html: getMeetingCancellationHTML(meeting, senderName),
-    icalEvent: {
-      filename: 'cancel.ics',
-      method: 'CANCEL',
-      content: icsContent,
-    },
-  });
+    htmlContent: getMeetingCancellationHTML(meeting, senderName),
+    attachment: [{
+      name: 'cancel.ics',
+      content: Buffer.from(icsContent).toString('base64')
+    }]
+  };
 
-  console.log(`📧 Cancellation sent to ${recipientEmail} for "${meeting.title}"`);
+  await sendBrevoEmail(payload);
 }
