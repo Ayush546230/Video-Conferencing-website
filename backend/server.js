@@ -11,6 +11,9 @@ import mongoose from 'mongoose';
 import authRoutes from './routes/auth.js';
 import passkeyRoutes from './routes/passkeys.js';
 import pushAuthRoutes from './routes/pushAuth.js';
+import meetingRoutes from './routes/meetings.js';
+import userRoutes from './routes/users.js';
+import { startReminderScheduler } from './services/reminderScheduler.js';
 
 dotenv.config();
 
@@ -44,19 +47,10 @@ app.use(
   })
 );
 
-// ─── Rate Limiting ─────────────────────────────────────────
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: { error: 'Too many requests, please try again later.' },
-});
-app.use('/api/', limiter);
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { error: 'Too many auth attempts, please try again later.' },
-});
+// ─── Rate Limiting (Disabled for now) ──────────────────────
+// const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
+// app.use('/api/', limiter);
+// const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 
 // ─── Body Parsing ──────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
@@ -83,9 +77,11 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // ─── Routes ────────────────────────────────────────────────
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/passkeys', authLimiter, passkeyRoutes);
-app.use('/api/push-auth', authLimiter, pushAuthRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/passkeys', passkeyRoutes);
+app.use('/api/push-auth', pushAuthRoutes);
+app.use('/api/meetings', meetingRoutes);
+app.use('/api/users', userRoutes);
 
 // ─── Health Check ──────────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -106,6 +102,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  startReminderScheduler();
 });
 
 export default app;

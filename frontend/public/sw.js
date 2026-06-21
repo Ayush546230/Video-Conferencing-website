@@ -28,11 +28,11 @@ self.addEventListener('push', (event) => {
     icon: data.icon || '/favicon.svg',
     badge: data.badge || '/favicon.svg',
     vibrate: [200, 100, 200],
-    tag: 'auth-login-request',
+    tag: data.tag || 'auth-login-request',
     renotify: true,
-    requireInteraction: true, // Keep notification visible until user interacts
+    requireInteraction: true,
     data: data.data || {},
-    actions: [
+    actions: data.actions || [
       { action: 'approve', title: 'Allow' },
       { action: 'deny', title: 'Deny' },
     ],
@@ -52,6 +52,11 @@ self.addEventListener('notificationclick', (event) => {
   const action = event.action; // 'approve', 'deny', or '' (body click)
 
   notification.close();
+
+  if (action === 'ok') {
+    // Just close the notification (already done above)
+    return;
+  }
 
   if (action === 'approve' || action === 'deny') {
     // User tapped Allow/Deny directly on the notification

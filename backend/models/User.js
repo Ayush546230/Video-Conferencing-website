@@ -51,6 +51,17 @@ const userSchema = new mongoose.Schema(
       },
     },
 
+    // User Preferences (for meeting defaults & UI)
+    preferences: {
+      displayName: { type: String },
+      micDefault: { type: Boolean, default: false },
+      speakerDefault: { type: Boolean, default: false },
+      cameraDefault: { type: Boolean, default: false },
+      notifications: { type: Boolean, default: true },
+      soundEffects: { type: Boolean, default: true },
+      timezone: { type: String, default: 'Asia/Kolkata' },
+    },
+
     // Security metadata
     lastLoginAt: { type: Date },
     lastLoginMethod: { type: String, enum: ['google', 'passkey', 'push'] },

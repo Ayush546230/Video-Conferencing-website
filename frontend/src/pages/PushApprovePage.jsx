@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function PushApprovePage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { respondToPushLogin } = useAuth();
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'approving' | 'approved' | 'denied' | 'error' | 'expired'
   const [error, setError] = useState('');
@@ -26,6 +27,10 @@ export default function PushApprovePage() {
     try {
       await respondToPushLogin(requestId, token, action);
       setStatus(action === 'approve' ? 'approved' : 'denied');
+      
+      if (action === 'approve') {
+        setTimeout(() => navigate('/dashboard'), 1500);
+      }
     } catch (err) {
       const msg = err?.response?.data?.error || err?.message || 'Something went wrong';
       if (msg.includes('expired')) {

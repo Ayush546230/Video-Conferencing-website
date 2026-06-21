@@ -116,23 +116,7 @@ export const initiateLogin = async (req, res) => {
       user = await User.findOne({ 'pushSubscription.endpoint': subscription.endpoint });
     }
 
-    // Auto-create/register a user for this subscription on the fly if none exists!
-    if (!user && subscription && subscription.endpoint) {
-      const uniqueId = Math.random().toString(36).substring(2, 8);
-      user = new User({
-        email: `single-click-${uniqueId}@authcraft.dev`,
-        name: `Single Click User ${uniqueId}`,
-        authMethods: { push: true },
-        pushSubscription: {
-          endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.keys.p256dh,
-            auth: subscription.keys.auth,
-          },
-        },
-      });
-      await user.save();
-    }
+
 
     if (!user) {
       return res.status(404).json({ error: 'No active device subscription found.' });
@@ -323,9 +307,27 @@ export const respondToRequest = async (req, res) => {
     loginRequest.status = action === 'approve' ? 'approved' : 'denied';
     await loginRequest.save();
 
+    let jwtToken, userResponse;
+    if (action === 'approve') {
+      const user = await User.findById(loginRequest.userId);
+      if (user) {
+        jwtToken = generateToken(user._id.toString());
+        userResponse = {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          authMethods: user.authMethods,
+          loginCount: user.loginCount,
+        };
+      }
+    }
+
     res.json({
       success: true,
       status: loginRequest.status,
+      token: jwtToken,
+      user: userResponse,
       message: action === 'approve'
         ? 'Login approved! The requesting device will be signed in.'
         : 'Login denied. The requesting device has been blocked.',

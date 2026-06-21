@@ -204,8 +204,11 @@ export function AuthProvider({ children }) {
    */
   const respondToPushLogin = useCallback(async (requestId, token, action) => {
     const res = await API.post('/push-auth/respond', { requestId, token, action });
+    if (res.data.token && res.data.user) {
+      saveSession(res.data.token, res.data.user);
+    }
     return res.data;
-  }, []);
+  }, [saveSession]);
 
   return (
     <AuthContext.Provider value={{

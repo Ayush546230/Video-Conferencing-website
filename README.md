@@ -1,172 +1,162 @@
-# 🔐 AuthCraft — My Cool Authentication Project
+# aiRender: Advanced Video Conferencing & Authentication Platform
 
-Hi everyone! This is a full-stack MERN project I built to show off three really awesome, **100% free** ways to log into an app:
+A comprehensive full-stack MERN (MongoDB, Express, React, Node.js) enterprise application demonstrating modern, passwordless authentication alongside a fully featured, branded video conferencing dashboard. This project integrates seamless authentication flows with a high-performance video communication suite powered by Jitsi as a Service (JaaS).
 
-- **Google Login** — Just click a button to log in with your Google account.
-- **Passkeys** — Log in using your fingerprint, Face ID, or Windows Hello (super safe and no passwords!).
-- **Push Notification Auth** — Send a notification to your phone and just tap "Approve" to log in on your computer!
+## 🌟 Key Features
 
-I wanted to build this without paying for any expensive third-party tools, and without storing any dangerous passwords.
+### Enterprise Video Conferencing (JaaS Integration)
+- **Instant & Scheduled Meetings**: Easily launch instant meetings or schedule future sessions with dedicated meeting URLs.
+- **Intelligent Time Zone Management**: Integrated scheduling logic powered by `luxon` that automatically detects the user's local time zone, defaults new meetings to the nearest 30-minute block, and sets an intelligent 1-hour default duration.
+- **Pre-Join Lobby**: Professional waiting area allowing users to configure audio and video settings before joining an active meeting.
+- **Private Meeting Rooms**: Enterprise-grade host controls featuring a functional lobby where hosts can explicitly admit or deny guests.
+- **Automated Host Privileges**: Secure JWT-based host authentication that automatically identifies meeting creators as Moderators with full host privileges.
+- **Custom Branding**: Fully branded "hi" UI experience, powered by aiRender, with streamlined interfaces and removed legacy Jitsi watermarks.
+- **Seamless Reconnection**: Robust handling of meeting lifecycle events, preventing disruptive post-call screens and ensuring a smooth lobby-to-meeting transition.
 
----
-
-## 🏗️ What I Used to Build This
-
-| Part | What I used |
-|-------|-----------|
-| Frontend | React 18, Vite, and React Router |
-| Backend | Node.js with Express 5 |
-| Database | MongoDB and Mongoose |
-| Google Auth | `google-auth-library` (free!) |
-| Passkeys | `@simplewebauthn` (free!) |
-| Push Notifications | Web Push API (VAPID) (free!) |
-| Security | Helmet, rate limits, CORS, JWTs, and secure cookies |
+### Advanced Authentication Suite
+- **Google OAuth Integration**: Streamlined single sign-on (SSO) utilizing Google's identity services for quick access.
+- **Passkey Authentication (WebAuthn)**: Biometric and hardware-based authentication (Fingerprint, Face ID, Windows Hello) for enhanced security and a frictionless, passwordless login.
+- **Push Notification Authentication**: Out-of-band (OOB) authentication allowing users to securely approve desktop login requests directly via mobile device push notifications.
 
 ---
 
-## 🚀 How to Run It on Your Computer
+## 🏗️ Tech Stack
 
-### What you need first
-- Node.js (version 18 or higher)
-- MongoDB (running locally or a free cloud account on Atlas)
-- A free Google Cloud account for the Google login part
+| Component | Technology |
+|-----------|------------|
+| **Frontend UI** | React 18, TypeScript, Vite, React Router, Lucide React |
+| **Backend API** | Node.js, Express 5 |
+| **Database** | MongoDB, Mongoose |
+| **Video Platform**| `@jitsi/react-sdk` (Jitsi as a Service) |
+| **OAuth** | `google-auth-library` |
+| **Passkeys** | `@simplewebauthn` |
+| **Push Notifications**| Web Push API (VAPID) |
+| **Security** | Helmet, Rate Limiting, CORS, JWT, HTTP-only Cookies |
 
-### 1. Download and Install
+---
+
+## 🚀 Getting Started
+
+Follow these instructions to set up and run the project locally.
+
+### Prerequisites
+- Node.js (v18 or higher)
+- MongoDB (Local instance or MongoDB Atlas cluster)
+- Google Cloud Platform account (for OAuth credentials)
+- Jitsi as a Service (JaaS) Account / API Keys
+
+### 1. Installation
+
+Clone the repository and install dependencies for both the frontend and backend:
 
 ```bash
-# Install the main stuff
+# Install root dependencies
 npm install
 
-# Install everything for frontend and backend
+# Install frontend and backend dependencies concurrently
 npm run install:all
 ```
 
-### 2. Set up the Backend
+### 2. Backend Configuration
+
+Navigate to the `backend` directory and configure your environment variables:
 
 ```bash
 cd backend
 cp .env.example .env
-# Open the .env file and put your own database link and secret keys in there
 ```
+*Edit the `.env` file and provide your MongoDB connection string, JWT secrets, and JaaS App ID / RSA Private Key for host authentication.*
 
-### 3. Set up the Frontend
+### 3. Frontend Configuration
+
+Navigate to the `frontend` directory and configure the environment variables:
 
 ```bash
 cd frontend
 cp .env.example .env
-# Open this .env file and add your VITE_GOOGLE_CLIENT_ID and VAPID keys
 ```
+*Edit the `.env` file and provide your `VITE_GOOGLE_CLIENT_ID`, VAPID keys, and `VITE_JAAS_APP_ID`.*
 
-### 4. How to get the Google Keys (for free)
+### 4. Running the Application
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Make a new project
-3. Go to **APIs & Services → Credentials**
-4. Click **Create Credentials → OAuth 2.0 Client ID**
-5. Pick **Web application**
-6. Add `http://localhost:3000` to the Authorized JavaScript origins
-7. Add `http://localhost:3000` to the Authorized redirect URIs
-8. Copy the **Client ID** and paste it into both of your `.env` files.
-
-### 5. Start the App!
+Return to the root directory and start the development servers:
 
 ```bash
-# Make sure you are in the main project folder
 npm run dev
 ```
 
-- See the frontend here: http://localhost:3000
-- The backend API runs here: http://localhost:5000
+- **Frontend Application**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000`
 
 ---
 
-## 🔑 How the Logins Work
+## 🔑 Authentication Flows Explained
 
-### Google Login
-- It uses Google's free sign-in tools.
-- It shows that neat "One Tap" popup or a regular button.
-- The backend checks the token Google gives us to make sure it's real. It's really simple!
+### Passkeys (WebAuthn)
+- Utilizes device-level biometrics (e.g., Touch ID, Face ID, Windows Hello).
+- Eliminates password-related vulnerabilities (phishing, credential stuffing) through public key cryptography.
 
-### Passkeys
-- You can use your phone's fingerprint, Face ID, or Windows Hello.
-- It's super secure because it doesn't even use passwords.
-- It syncs across your devices if you use iCloud or Google Password Manager.
+### Push Notification Authentication
+- Facilitates cross-device login. A user attempting to authenticate on a desktop triggers a push notification to their registered mobile device.
+- Upon approval on the mobile device, the desktop session is authorized automatically.
 
-### Push Notification Auth
-- If you're trying to log in on your laptop, the app sends a push notification to your phone.
-- You just tap "Yes, it's me" on your phone, and boom, your laptop logs in!
-- It uses the standard Web Push API so we don't have to pay for SMS or anything.
+### Google OAuth
+- Supports both the "One Tap" prompt and standard button-based sign-in.
+- The backend securely verifies the ID token to authenticate the user session.
 
 ---
 
-## 🛡️ How I Made It Secure
+## 🛡️ Security & Privacy Measures
 
-- **JWTs** — Special tokens that expire in 7 days so you don't stay logged in forever if you lose your device.
-- **Secure Cookies** — The backend hides some important data in cookies so hackers can't easily steal it.
-- **Rate limiting** — Stops bad guys from trying to guess stuff too fast (only 20 tries per 15 minutes).
-- **Helmet & CORS** — Extra locks on the server to make sure only our app can talk to it.
+- **Private Meetings**: Explicit host approval workflows prevent unauthorized guests from joining active meetings.
+- **JSON Web Tokens (JWT)**: Used for stateless session management and generating secure Jitsi host tokens.
+- **Secure Cookies**: Critical tokens are stored in `HttpOnly`, `Secure` (in production), and `SameSite` cookies to mitigate XSS attacks.
+- **Rate Limiting & Helmet**: API endpoints are protected against brute-force attacks and enforced with secure HTTP headers.
 
 ---
 
-## 📁 How My Files are Organized
+## 📁 Project Structure
 
-```
+```text
 auth-showcase/
 ├── backend/
 │   ├── controllers/
-│   │   ├── authController.js      # Google stuff
-│   │   ├── passkeyController.js   # Fingerprint stuff
-│   │   └── pushAuthController.js  # Push notification stuff!
-│   ├── middleware/
-│   │   └── auth.js                # Checks if you are logged in
-│   ├── models/
-│   │   └── User.js                # Database layout for users
+│   │   ├── authController.js      # Google OAuth logic
+│   │   ├── meetingsController.js  # JaaS JWT generation & meeting logic
+│   │   ├── passkeyController.js   # WebAuthn logic
+│   │   └── pushAuthController.js  # Push notification handling
 │   ├── routes/
-│   │   ├── auth.js                # Auth routes
-│   │   ├── passkeys.js            # Passkey routes
-│   │   └── pushAuth.js            # Push routes
-│   ├── server.js                  # The main backend file
-│   └── .env.example
+│   │   ├── auth.js                # OAuth routes
+│   │   ├── meetings.js            # Video conferencing endpoints
+│   │   ├── passkeys.js            # WebAuthn routes
+│   │   └── pushAuth.js            # Push authentication routes
+│   └── server.js                  # Express application entry point
 └── frontend/
     └── src/
-        ├── context/
-        │   └── AuthContext.jsx    # Keeps track of who is logged in
-        ├── pages/
-        │   ├── HomePage.jsx       # Explains the app
-        │   ├── LoginPage.jsx      # Where you actually log in
-        │   └── DashboardPage.jsx  # Where you go after you log in
         ├── components/
-        │   └── Navbar.jsx
-        ├── App.jsx                # Connects all the pages
-        └── index.css              # Makes it look pretty!
+        │   ├── dashboard/         # Dashboard & recent meetings UI
+        │   ├── meeting/           # JitsiRoom and PreJoinScreen components
+        │   ├── schedule/          # Meeting scheduling and invite logic
+        │   └── Navbar.tsx         # Branded navigation
+        ├── pages/
+        │   ├── LoginPage.jsx      # Multi-flow auth interface
+        │   └── DashboardPage.jsx  # Main application dashboard
+        └── App.tsx                # Routing configuration
 ```
 
 ---
 
-## 🌐 The API Routes I Made
+## 🌐 API Reference
 
-| Method | Path | What it does |
-|--------|------|-------------|
-| POST | `/api/auth/google` | Checks the Google token |
-| GET | `/api/auth/me` | Tells you who is logged in |
-| POST | `/api/passkeys/register/...` | Saves a new passkey |
-| POST | `/api/passkeys/auth/...` | Logs you in with a passkey |
-| POST | `/api/push-auth/request` | Sends the notification to your phone |
-| POST | `/api/push-auth/respond` | When you tap "Yes" on your phone |
-| POST | `/api/push-auth/status` | The laptop checks if you tapped "Yes" |
-| GET | `/api/health` | Just checks if the server is alive |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/google` | Verifies Google ID token and issues application JWT. |
+| `GET` | `/api/meetings` | Retrieves user's scheduled and recent meetings. |
+| `POST` | `/api/meetings/schedule` | Schedules a new video meeting with privacy options. |
+| `GET` | `/api/meetings/token/:room` | Generates a JaaS JWT for moderator/host privileges. |
+| `POST` | `/api/passkeys/auth/...` | Initiates and verifies WebAuthn authentication. |
+| `POST` | `/api/push-auth/request` | Triggers a push notification to a mobile device. |
 
 ---
 
-## 💰 How Much This Costs
-
-| Feature | Cost |
-|---------|------|
-| Google Login | **Free!** |
-| Passkeys | **Free!** |
-| Push Notifications | **Free!** |
-| Database (MongoDB Atlas) | **Free!** |
-| Node.js / Express | **Free!** |
-| **Total** | **$0/month!** |
-
-Hope you like my project! Let me know if you find any bugs!
+*Powered by aiRender.*
