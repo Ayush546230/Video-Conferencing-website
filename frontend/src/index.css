@@ -508,6 +508,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 @keyframes toastOut { to { opacity:0; transform: translateX(-50%) translateY(16px); } }
 /* Responsive */
 .mobile-menu-btn { display: none; }
+.mobile-only-flex { display: none !important; }
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); position: fixed; z-index: 100; }
   .sidebar.open { transform: translateX(0); }
@@ -524,9 +525,12 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   .share-grid { grid-template-columns: 1fr 1fr; }
   .history-page, .settings-page { padding: 24px 16px; }
   .hero-actions { flex-direction: column; align-items: stretch; }
-  .join-input-wrap { flex-direction: column; }
-  .join-input { width: 100%; }
-  .join-input input { width: 100%; }
+  .join-input-wrap { flex-direction: row; flex-wrap: nowrap; width: 100%; }
+  .join-input { flex: 1; min-width: 0; }
+  .join-input input { width: 100%; min-width: 0; }
+  .hide-on-mobile { display: none !important; }
+  .mobile-only-flex { display: flex !important; }
+  .pre-join-card { padding: 32px 16px !important; }
 }
 @media (max-width: 480px) {
   .quick-actions { grid-template-columns: 1fr; }

@@ -61,10 +61,6 @@ export default function DashboardPage() {
               <li><strong>Verification:</strong> Your device prompts you for a biometric check. Once verified, it signs the challenge with your private key.</li>
               <li><strong>Authentication:</strong> The signed challenge is sent back to our server, which uses your previously stored public key to verify the signature. If it matches, you are securely logged in.</li>
             </ol>
-            
-            <div style={{ marginTop: 24 }}>
-              <PasskeyRegistration user={user} />
-            </div>
           </div>
 
           {/* ─── Push Notification Auth Card ──────────── */}
@@ -90,41 +86,6 @@ export default function DashboardPage() {
 
         </div>
       </div>
-    </div>
-  );
-}
-
-function PasskeyRegistration({ user }) {
-  const { registerPasskey } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  const handleRegister = async () => {
-    setLoading(true); setError(''); setSuccess('');
-    try {
-      const email = user?.email || 'user@example.com';
-      const name = user?.name || 'User';
-      await registerPasskey(email, name, 'My Passkey Device');
-      setSuccess('Passkey registered successfully! You can now use it to sign in.');
-    } catch (err) {
-      setError(err?.response?.data?.error || err?.message || 'Failed to register passkey.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ padding: '16px', background: 'var(--cream)', borderRadius: 8 }}>
-      <h4 style={{ margin: '0 0 8px 0', fontSize: 16 }}>Register a new Passkey</h4>
-      <p style={{ margin: '0 0 12px 0', fontSize: 13, color: 'var(--ink-muted)' }}>
-        Since the login page only has the "Sign in" option now, you can register a passkey for this device here.
-      </p>
-      {error && <div style={{ color: 'var(--error)', fontSize: 13, marginBottom: 8 }}>{error}</div>}
-      {success && <div style={{ color: 'var(--success)', fontSize: 13, marginBottom: 8 }}>{success}</div>}
-      <button className="btn btn-outline btn-sm" onClick={handleRegister} disabled={loading}>
-        {loading ? 'Waiting for device...' : 'Register Passkey'}
-      </button>
     </div>
   );
 }

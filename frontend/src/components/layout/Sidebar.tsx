@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Clock, CalendarDays, Settings } from 'lucide-react';
+import { Home, Clock, CalendarDays, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const { logout } = useAuth() as any;
   const links = [
     { to: '/dashboard', icon: Home, label: 'Home' },
     { to: '/history', icon: Clock, label: 'Meeting History' },
@@ -35,8 +37,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             </NavLink>
           ))}
         </nav>
-        <div style={{ padding: '20px', display: 'flex', justifyContent: 'center', marginTop: 'auto' }}>
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto' }}>
           <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="powered-by-logo" style={{ height: '72px' }} />
+          <button 
+            className="btn btn-ghost mobile-only-flex" 
+            onClick={logout} 
+            style={{ marginTop: '16px', color: 'var(--error)', gap: '8px', width: '100%', justifyContent: 'center' }}
+          >
+            <LogOut size={18} />
+            Sign out
+          </button>
         </div>
       </aside>
     </>

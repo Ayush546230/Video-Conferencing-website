@@ -121,8 +121,8 @@ export default function MeetingRoom() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
-          <div style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
-          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" style={{ height: '72px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
         </div>
         <div className="spinner" style={{ borderTopColor: 'var(--primary)', borderLeftColor: 'var(--primary)', borderBottomColor: 'var(--primary)', width: 40, height: 40, marginBottom: 24, borderWidth: 3 }}></div>
         <h2 style={{ marginBottom: 8 }}>Waiting for Host</h2>
@@ -138,8 +138,8 @@ export default function MeetingRoom() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', textAlign: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
           <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
-          <div style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
-          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" style={{ height: '72px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
         </div>
         <div className="spinner" style={{ borderTopColor: 'var(--primary)', borderLeftColor: 'var(--primary)', borderBottomColor: 'var(--primary)', width: 40, height: 40, marginBottom: 24, borderWidth: 3 }}></div>
         <h2 style={{ marginBottom: 8 }}>Securing connection...</h2>

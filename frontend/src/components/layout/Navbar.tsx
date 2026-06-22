@@ -44,7 +44,7 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
           <Search size={18} color="var(--text-muted)" />
           <input type="text" placeholder="Search meetings, people, or settings..." />
         </div> */}
-        <div className="navbar-time" style={{ marginLeft: '16px', textAlign: 'left' }}>
+        <div className="navbar-time hide-on-mobile" style={{ marginLeft: '16px', textAlign: 'left' }}>
           <div className="time">{time}</div>
           <div className="date">{getFormattedNow()}</div>
         </div>
@@ -74,8 +74,8 @@ export default function Navbar({ onToggleSidebar }: NavbarProps) {
             </div>
           )}
         </div>
-        <button className="icon-btn" aria-label="Settings" onClick={() => navigate('/settings')}><Settings size={20} /></button>
-        <button className="icon-btn" aria-label="Sign out" onClick={logout} title="Sign out" style={{ color: 'var(--error)' }}>
+        <button className="icon-btn hide-on-mobile" aria-label="Settings" onClick={() => navigate('/settings')}><Settings size={20} /></button>
+        <button className="icon-btn hide-on-mobile" aria-label="Sign out" onClick={logout} title="Sign out" style={{ color: 'var(--error)' }}>
           <LogOut size={20} />
         </button>
         <div className="avatar" title={user?.name || userProfile.displayName} style={userProfile.avatar ? { padding: 0, overflow: 'hidden' } : {}}>

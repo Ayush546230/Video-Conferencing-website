@@ -71,8 +71,8 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
             <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
-            <div style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
-            <img src="/powered_by_aiRender.png" alt="Powered by aiRender" style={{ height: '72px' }} />
+            <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+            <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <div style={{ width: 20, height: 20, border: '3px solid var(--border)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />

@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [pushPopupStatus, setPushPopupStatus] = useState('ask'); // 'ask' | 'creating' | 'success' | 'error'
   const [pushPopupError, setPushPopupError] = useState('');
   const [wantsPush, setWantsPush] = useState(false);
+  const [showGoogleFirstPopup, setShowGoogleFirstPopup] = useState(false);
   
   const popupIntentRef = useRef(false);
   const tempUserRef = useRef(null);
@@ -135,7 +136,7 @@ export default function LoginPage() {
           </div>
 
           <GooglePanel onSuccess={handleGoogleSuccess} clientId={GOOGLE_CLIENT_ID} />
-          <PasskeyPanel onSuccess={handlePasskeySuccess} />
+          <PasskeyPanel onSuccess={handlePasskeySuccess} onRequiresGoogle={() => setShowGoogleFirstPopup(true)} />
 
           <div className="divider">or</div>
 
@@ -206,6 +207,22 @@ export default function LoginPage() {
           </div>
         </div>
       )}
+
+      {/* ─── Google First Popup (shown if Passkey clicked without setup) ──── */}
+      {showGoogleFirstPopup && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(6px)' }}>
+          <div className="pre-join-card animate-fade-up" style={{ maxWidth: 420, width: '100%', padding: '40px 32px', textAlign: 'center' }}>
+            <h3 style={{ fontSize: 22, fontFamily: 'var(--font-heading)', marginBottom: 10 }}>Sign in with Google First</h3>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: 8, maxWidth: 320, margin: '0 auto 24px' }}>
+              Please sign in with Google first to set up Passkeys.
+            </p>
+            <button className="btn btn-primary" onClick={() => setShowGoogleFirstPopup(false)} style={{ width: '100%', height: 48, borderRadius: 14, fontWeight: 600 }}>
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─── Push Auth Enable Popup (shown after Google Sign-In) ──── */}
       {showPushPopup && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, backdropFilter: 'blur(6px)' }}>
@@ -316,13 +333,14 @@ function GooglePanel({ onSuccess, clientId }) {
 
   useEffect(() => {
     if (!clientId || !googleLoaded) return;
+    const btnWidth = Math.min(320, window.innerWidth - 64);
     window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse, auto_select: false, cancel_on_tap_outside: true });
-    window.google.accounts.id.renderButton(btnRef.current, { type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large', logo_alignment: 'center', width: 320 });
+    window.google.accounts.id.renderButton(btnRef.current, { type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large', logo_alignment: 'center', width: btnWidth });
   }, [clientId, handleCredentialResponse, googleLoaded]);
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-      {error && <div className="toast toast-error" style={{ width: '320px' }}>{error}</div>}
+      {error && <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px' }}>{error}</div>}
       {!clientId ? (<div className="toast toast-error">Google OAuth not configured</div>)
         : loading ? (<div style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}><div className="spinner" /></div>)
           : (<div ref={btnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: '40px' }} />)}
@@ -331,7 +349,7 @@ function GooglePanel({ onSuccess, clientId }) {
 }
 
 // ─── Passkey Panel ─────────────────────────────────────────
-function PasskeyPanel({ onSuccess }) {
+function PasskeyPanel({ onSuccess, onRequiresGoogle }) {
   const { loginWithDiscoverablePasskey } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -344,7 +362,7 @@ function PasskeyPanel({ onSuccess }) {
       if (err.name === 'NotAllowedError' || msg.includes('not allowed') || msg.includes('timed out') || msg.includes('cancelled')) {
         setError('');
       } else {
-        setError('Please sign in with Google first to set up Passkeys.'); 
+        onRequiresGoogle(); 
       }
     }
     finally { setLoading(false); }
@@ -352,8 +370,8 @@ function PasskeyPanel({ onSuccess }) {
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-      {error && <div className="toast toast-error" style={{ width: '320px', fontSize: 13, lineHeight: 1.4 }}>{error}</div>}
-      <button className="btn btn-secondary" onClick={handleLogin} disabled={loading} style={{ width: '320px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      {error && <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px', fontSize: 13, lineHeight: 1.4 }}>{error}</div>}
+      <button className="btn btn-secondary" onClick={handleLogin} disabled={loading} style={{ width: '100%', maxWidth: '320px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         {loading ? <div className="spinner" /> : 'Sign in with Passkey'}
       </button>
     </div>
@@ -468,7 +486,12 @@ function PushLoginPanel() {
       startPolling(res.requestId);
     } catch (err) {
       console.error('Error during push login:', err);
-      setError(err?.message || 'Failed to trigger push login.');
+      let errMsg = err?.response?.data?.error || err?.message || 'Failed to trigger push login.';
+      if (err?.response?.status === 404) {
+        localStorage.removeItem('pushEnabled');
+        errMsg = 'Device not registered. Please sign in with Google to re-enable Single Click Login.';
+      }
+      setError(errMsg);
       setStep('idle');
     }
   };
@@ -481,11 +504,11 @@ function PushLoginPanel() {
     setRequestId(null);
   };
 
-  if (step === 'idle') {
+    if (step === 'idle') {
     return (
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        {error && <div className="toast toast-error" style={{ width: '320px', fontSize: 13, lineHeight: 1.4 }}>{error}</div>}
-        <button className="btn btn-primary" onClick={handleSingleClickLogin} style={{ width: '320px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
+        {error && <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px', fontSize: 13, lineHeight: 1.4 }}>{error}</div>}
+        <button className="btn btn-primary" onClick={handleSingleClickLogin} style={{ width: '100%', maxWidth: '320px', height: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}>
           Login with Single Click
         </button>
         <p style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', maxWidth: 280 }}>
@@ -560,7 +583,7 @@ function PushLoginPanel() {
   // error
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '12px 0' }}>
-      <div className="toast toast-error" style={{ width: '320px', fontSize: 13 }}>{error}</div>
+      <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px', fontSize: 13 }}>{error}</div>
       <button className="btn btn-secondary btn-sm" onClick={handleReset}>Try Again</button>
     </div>
   );
