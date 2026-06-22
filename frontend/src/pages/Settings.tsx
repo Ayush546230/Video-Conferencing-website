@@ -163,7 +163,7 @@ export default function Settings() {
           <small style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Email is linked to your authentication and cannot be changed</small>
         </div>
         <button className="btn btn-primary" onClick={handleSave}>
-          {saved ? '✓ Saved!' : 'Save Profile'}
+          {saved ? '✓ Saved Profile' : 'Save Profile'}
         </button>
       </div>
 

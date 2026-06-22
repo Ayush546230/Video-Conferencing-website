@@ -642,6 +642,7 @@ function ImageCarousel() {
 
       {/* Arrows */}
       <button
+        className="hide-on-mobile"
         onClick={goToPrev}
         style={{
           position: 'absolute', top: '50%', left: '-20px', transform: 'translateY(-50%)',
@@ -655,6 +656,7 @@ function ImageCarousel() {
         <ChevronLeft size={24} />
       </button>
       <button
+        className="hide-on-mobile"
         onClick={goToNext}
         style={{
           position: 'absolute', top: '50%', right: '-20px', transform: 'translateY(-50%)',
