@@ -46,11 +46,11 @@ export default function MeetingRoom() {
     if (roomData && userProfile?.id === roomData.userId && !roomData.hostJoined && roomData.status === 'scheduled') {
       API.put(`/meetings/${roomData.id}`, { hostJoined: true }).catch(console.error);
     }
-  }, [roomData, userProfile]);
+  }, [roomData?.id, roomData?.userId, roomData?.hostJoined, roomData?.status, userProfile?.id]);
 
   // Fetch JWT Token for authenticated users
   useEffect(() => {
-    if (roomData && userProfile?.id) {
+    if (roomData?.id && userProfile?.id) {
       API.get(`/meetings/room/${roomName}/token`)
         .then(res => setJwtToken(res.data.token))
         .catch(err => {
@@ -60,7 +60,7 @@ export default function MeetingRoom() {
     } else if (roomData && !userProfile?.id) {
       setJwtToken(''); // guests don't get a token
     }
-  }, [roomData, userProfile, roomName]);
+  }, [roomData?.id, userProfile?.id, roomName]);
 
   if (!roomName) {
     navigate('/');

@@ -468,6 +468,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 .history-meta { text-align: right; }
 .history-meta .duration { font-size: 0.85rem; font-weight: 600; color: var(--text); }
 .history-meta .time { font-size: 0.75rem; color: var(--text-muted); }
+.history-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
 /* Settings */
 .settings-page { padding: 32px 48px; max-width: 800px; }
 .settings-section { margin-bottom: 32px; }
@@ -524,6 +525,9 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   .form-row { grid-template-columns: 1fr; }
   .share-grid { grid-template-columns: 1fr 1fr; }
   .history-page, .settings-page { padding: 24px 16px; }
+  .history-item { align-items: flex-start; }
+  .history-right { flex-direction: column; align-items: flex-end; gap: 8px; }
+  .history-meta { text-align: right; }
   .hero-actions { flex-direction: column; align-items: stretch; }
   .join-input-wrap { flex-direction: row; flex-wrap: nowrap; width: 100%; }
   .join-input { flex: 1; min-width: 0; }

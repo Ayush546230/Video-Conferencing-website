@@ -60,7 +60,7 @@ export default function History() {
               </div>
               <div className="history-details">
                 <h4>{m.title}</h4>
-                <p>{formatDate(m.startTime)} • {m.participants.length} participant{m.participants.length !== 1 ? 's' : ''}</p>
+                <p>{formatDate(m.startTime)} • 👥 {m.participants.length}</p>
                 {m.description && (
                   <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                     {m.description.length <= 50 ? (
@@ -89,20 +89,22 @@ export default function History() {
                   </div>
                 )}
               </div>
-              <div className="history-meta">
-                {typeof m.duration === 'number' && <div className="duration">{formatDuration(m.duration)}</div>}
-                <div className="time">{getRelativeTime(m.createdAt)}</div>
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
-                  <Video size={16} />
-                </button>
-                <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
-                  <Copy size={16} />
-                </button>
-                <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
-                  <Trash2 size={16} />
-                </button>
+              <div className="history-right">
+                <div className="history-meta">
+                  {typeof m.duration === 'number' && <div className="duration">{formatDuration(m.duration)}</div>}
+                  <div className="time">{getRelativeTime(m.createdAt)}</div>
+                </div>
+                <div className="history-actions" style={{ display: 'flex', gap: 4 }}>
+                  <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
+                    <Video size={16} />
+                  </button>
+                  <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
+                    <Copy size={16} />
+                  </button>
+                  <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
