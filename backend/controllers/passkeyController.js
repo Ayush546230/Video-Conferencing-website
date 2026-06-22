@@ -62,7 +62,13 @@ export const generateRegisterOptions = async (req, res) => {
     req.session.registrationChallenge = options.challenge;
     req.session.registrationUserId = user._id.toString();
 
-    res.json({ options });
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Failed to save session' });
+      }
+      res.json({ options });
+    });
   } catch (err) {
     console.error('Generate register options error:', err);
     res.status(500).json({ error: 'Failed to generate registration options' });
@@ -196,7 +202,13 @@ export const generateAuthOptions = async (req, res) => {
     req.session.authChallenge = options.challenge;
     if (email) req.session.authEmail = email.toLowerCase();
 
-    res.json({ options });
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({ error: 'Failed to save session' });
+      }
+      res.json({ options });
+    });
   } catch (err) {
     console.error('Generate auth options error:', err);
     res.status(500).json({ error: 'Failed to generate authentication options' });

@@ -58,6 +58,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ─── Session (needed for WebAuthn challenge storage) ───────
+app.set('trust proxy', 1); // Trust reverse proxy (e.g., Render, Heroku) for secure cookies
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'fallback-secret-key',
