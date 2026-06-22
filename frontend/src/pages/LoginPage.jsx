@@ -365,11 +365,30 @@ function GooglePanel({ onSuccess, clientId }) {
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
       {error && <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px' }}>{error}</div>}
-      {!clientId ? (<div className="toast toast-error">Google OAuth not configured</div>)
-        : loading ? (<div style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}><div className="spinner" /></div>)
-          : (<div style={{ width: '100%', maxWidth: '320px', display: 'flex', justifyContent: 'center' }}>
-               <div ref={btnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: '40px', width: '100%' }} />
-             </div>)}
+      {!clientId && <div className="toast toast-error">Google OAuth not configured</div>}
+      
+      <div style={{ width: '100%', maxWidth: '320px', display: clientId ? 'flex' : 'none', justifyContent: 'center', position: 'relative' }}>
+        {/* The Google button container - kept mounted so iframe doesn't break */}
+        <div 
+          ref={btnRef} 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            minHeight: '40px', 
+            width: '100%',
+            opacity: loading ? 0.4 : 1,
+            pointerEvents: loading ? 'none' : 'auto',
+            transition: 'opacity 0.2s'
+          }} 
+        />
+        
+        {/* Loading overlay */}
+        {loading && (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="spinner" style={{ color: 'var(--text)' }} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
