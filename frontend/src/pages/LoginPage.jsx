@@ -332,10 +332,34 @@ function GooglePanel({ onSuccess, clientId }) {
   }, [loginWithGoogle, onSuccess]);
 
   useEffect(() => {
-    if (!clientId || !googleLoaded) return;
-    const btnWidth = Math.min(320, window.innerWidth - 64);
-    window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse, auto_select: false, cancel_on_tap_outside: true });
-    window.google.accounts.id.renderButton(btnRef.current, { type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large', logo_alignment: 'center', width: btnWidth });
+    if (!clientId || !googleLoaded || !btnRef.current) return;
+    
+    let resizeTimer;
+    const renderGoogleBtn = () => {
+      if (!btnRef.current) return;
+      // Get the available width from the parent container
+      const parentWidth = btnRef.current.parentElement.offsetWidth;
+      // Bound the width between 200px and 320px (max width of Passkey button)
+      const btnWidth = Math.max(200, Math.min(320, parentWidth));
+      
+      // Clear previous button render
+      btnRef.current.innerHTML = '';
+      
+      window.google.accounts.id.initialize({ client_id: clientId, callback: handleCredentialResponse, auto_select: false, cancel_on_tap_outside: true });
+      window.google.accounts.id.renderButton(btnRef.current, { type: 'standard', shape: 'rectangular', theme: 'outline', text: 'signin_with', size: 'large', logo_alignment: 'center', width: btnWidth });
+    };
+
+    // Render initially
+    renderGoogleBtn();
+    
+    // Re-render on window resize to ensure correct width
+    const handleResize = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(renderGoogleBtn, 200);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [clientId, handleCredentialResponse, googleLoaded]);
 
   return (
@@ -343,7 +367,9 @@ function GooglePanel({ onSuccess, clientId }) {
       {error && <div className="toast toast-error" style={{ width: '100%', maxWidth: '320px' }}>{error}</div>}
       {!clientId ? (<div className="toast toast-error">Google OAuth not configured</div>)
         : loading ? (<div style={{ display: 'flex', justifyContent: 'center', padding: '10px' }}><div className="spinner" /></div>)
-          : (<div ref={btnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: '40px' }} />)}
+          : (<div style={{ width: '100%', maxWidth: '320px', display: 'flex', justifyContent: 'center' }}>
+               <div ref={btnRef} style={{ display: 'flex', justifyContent: 'center', minHeight: '40px', width: '100%' }} />
+             </div>)}
     </div>
   );
 }
