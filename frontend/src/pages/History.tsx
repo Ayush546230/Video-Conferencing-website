@@ -91,7 +91,7 @@ export default function History() {
               </div>
               <div className="history-right">
                 <div className="history-meta">
-                  {typeof m.duration === 'number' && <div className="duration">{formatDuration(m.duration)}</div>}
+                  {typeof m.duration === 'number' && <div className="duration hide-on-mobile">{formatDuration(m.duration)}</div>}
                   <div className="time">{getRelativeTime(m.createdAt)}</div>
                 </div>
                 <div className="history-actions" style={{ display: 'flex', gap: 4 }}>

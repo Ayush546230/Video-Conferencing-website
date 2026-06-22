@@ -40,6 +40,7 @@ const CustomSpinner = () => (
 
 export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted = true, videoMuted = false, isHost = false, isPrivate = false, jwt }: Props) {
   const [isReady, setIsReady] = React.useState(false);
+  const [shouldMount, setShouldMount] = React.useState(false);
   const isUnloadingRef = React.useRef(false);
 
   React.useEffect(() => {
@@ -55,10 +56,16 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
   }, []);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => {
+    const mountTimer = setTimeout(() => {
+      setShouldMount(true);
+    }, 150);
+    const readyTimer = setTimeout(() => {
       setIsReady(true);
     }, 2500);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(mountTimer);
+      clearTimeout(readyTimer);
+    };
   }, []);
 
   return (
@@ -92,59 +99,62 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
           </style>
         </div>
       )}
-      <JitsiMeeting
-        domain="8x8.vc"
-        roomName={`${(import.meta as any).env.VITE_JAAS_APP_ID}/${roomName}`}
-        jwt={jwt}
-        userInfo={{ displayName, email: '' }}
-        configOverwrite={{
-          startWithAudioMuted: audioMuted,
-          startWithVideoMuted: videoMuted,
-          prejoinPageEnabled: false,
-          disableModeratorIndicator: true,
-          enableInsecureRoomNameWarning: false,
-          hideConferenceSubject: false,
-          subject: roomName,
-          lobby: {
-            enableChat: false
-          }
-        }}
-        interfaceConfigOverwrite={{
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_WATERMARK_FOR_GUESTS: false,
-          SHOW_BRAND_WATERMARK: true,
-          BRAND_WATERMARK_LINK: window.location.origin,
-          DEFAULT_LOGO_URL: window.location.origin + '/Hi_Logo.png',
-          SHOW_POWERED_BY: false,
-          DEFAULT_BACKGROUND: '#0f0f1a',
-          TOOLBAR_BUTTONS: [
-            'microphone', 'camera', 'desktop', 'chat',
-            'raisehand', 'participants-pane', 'tileview',
-            'select-background', 'fullscreen', 'hangup',
-          ],
-        }}
-        getIFrameRef={(iframeRef) => {
-          iframeRef.style.height = '100%';
-          iframeRef.style.width = '100%';
-        }}
-        onApiReady={(externalApi: any) => {
-          externalApi.addListener('videoConferenceLeft', () => {
+      {shouldMount && (
+        <JitsiMeeting
+          domain="8x8.vc"
+          roomName={`${(import.meta as any).env.VITE_JAAS_APP_ID}/${roomName}`}
+          jwt={jwt}
+          userInfo={{ displayName, email: '' }}
+          configOverwrite={{
+            startWithAudioMuted: audioMuted,
+            startWithVideoMuted: videoMuted,
+            prejoinPageEnabled: false,
+            disableModeratorIndicator: true,
+            enableInsecureRoomNameWarning: false,
+            hideConferenceSubject: false,
+            disableDeepLinking: true,
+            subject: roomName,
+            lobby: {
+              enableChat: false
+            }
+          }}
+          interfaceConfigOverwrite={{
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            SHOW_BRAND_WATERMARK: true,
+            BRAND_WATERMARK_LINK: window.location.origin,
+            DEFAULT_LOGO_URL: window.location.origin + '/Hi_Logo.png',
+            SHOW_POWERED_BY: false,
+            DEFAULT_BACKGROUND: '#0f0f1a',
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'desktop', 'chat',
+              'raisehand', 'participants-pane', 'tileview',
+              'select-background', 'fullscreen', 'hangup',
+            ],
+          }}
+          getIFrameRef={(iframeRef) => {
+            iframeRef.style.height = '100%';
+            iframeRef.style.width = '100%';
+          }}
+          onApiReady={(externalApi: any) => {
+            externalApi.addListener('videoConferenceLeft', () => {
+              if (!isUnloadingRef.current) {
+                onLeave();
+              }
+            });
+            if (isHost && isPrivate) {
+              externalApi.addListener('videoConferenceJoined', () => {
+                externalApi.executeCommand('toggleLobby', true);
+              });
+            }
+          }}
+          onReadyToClose={() => {
             if (!isUnloadingRef.current) {
               onLeave();
             }
-          });
-          if (isHost && isPrivate) {
-            externalApi.addListener('videoConferenceJoined', () => {
-              externalApi.executeCommand('toggleLobby', true);
-            });
-          }
-        }}
-        onReadyToClose={() => {
-          if (!isUnloadingRef.current) {
-            onLeave();
-          }
-        }}
-      />
+          }}
+        />
+      )}
 
       {/* Custom Logo Overlay */}
       {isReady && (
