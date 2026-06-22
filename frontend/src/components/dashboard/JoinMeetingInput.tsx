@@ -13,7 +13,7 @@ export default function JoinMeetingInput() {
     const room = extractRoomFromLink(code);
     if (room) {
       setCode('');
-      navigate(`/meeting/${room}`);
+      window.location.href = `/meeting/${room}`;
     } else {
       setError('Invalid room ID');
       setTimeout(() => setError(''), 3000);

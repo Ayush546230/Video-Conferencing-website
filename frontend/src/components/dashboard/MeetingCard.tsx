@@ -90,7 +90,7 @@ const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onIn
       )}
       <div className="meeting-card-actions">
         {meeting.status === 'scheduled' && (
-          <button className="btn btn-green btn-sm" onClick={() => navigate(`/meeting/${meeting.roomName}`)}>
+          <button className="btn btn-green btn-sm" onClick={() => { window.location.href = `/meeting/${meeting.roomName}`; }}>
             <Video size={14} /> Join
           </button>
         )}
