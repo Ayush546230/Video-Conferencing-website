@@ -4,6 +4,7 @@ import helmet from 'helmet';
 
 import morgan from 'morgan';
 import session from 'express-session';
+import MongoStore from 'connect-mongo';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
@@ -59,13 +60,18 @@ app.use(express.urlencoded({ extended: true }));
 // ─── Session (needed for WebAuthn challenge storage) ───────
 app.use(
   session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGO_URI || 'mongodb://localhost:27017/auth-showcase',
+      collectionName: 'sessions',
+      ttl: 5 * 60, // 5 minutes (in seconds)
+    }),
     cookie: {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      maxAge: 5 * 60 * 1000, // 5 minutes (short for challenge)
+      maxAge: 5 * 60 * 1000, // 5 minutes
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     },
   })
