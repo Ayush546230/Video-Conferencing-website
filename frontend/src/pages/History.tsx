@@ -95,7 +95,7 @@ export default function History() {
                   <div className="time">{getRelativeTime(m.createdAt)}</div>
                 </div>
                 <div className="history-actions" style={{ display: 'flex', gap: 4 }}>
-                  <button className="btn btn-green btn-sm btn-icon" onClick={() => { window.location.href = `/meeting/${m.roomName}`; }} title="Join">
+                  <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
                     <Video size={16} />
                   </button>
                   <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">

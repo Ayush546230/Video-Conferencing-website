@@ -61,7 +61,7 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
               </div>
               <div className="actions">
                 <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={() => setLinkBox(null)}>Dismiss</button>
-                <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={() => { window.location.href = `/meeting/${linkBox.roomName}`; }}>Join</button>
+                <button className="btn btn-primary" style={{ padding: '6px 12px', fontSize: '0.85rem' }} onClick={() => navigate(`/meeting/${linkBox.roomName}`)}>Join</button>
               </div>
             </div>
           )}
