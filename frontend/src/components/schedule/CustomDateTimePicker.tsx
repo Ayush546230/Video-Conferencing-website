@@ -104,7 +104,7 @@ export default function CustomDateTimePicker({ value, onChange }: Props) {
         <div style={{
           position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 100,
           background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-          boxShadow: 'var(--shadow-lg)', width: '320px', overflow: 'hidden'
+          boxShadow: 'var(--shadow-lg)', width: '100%', minWidth: '280px', maxWidth: '320px', overflow: 'hidden'
         }}>
           {/* Calendar Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
