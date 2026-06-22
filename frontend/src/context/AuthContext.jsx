@@ -210,21 +210,36 @@ export function AuthProvider({ children }) {
     return res.data;
   }, [saveSession]);
 
+  const authValue = React.useMemo(() => ({
+    user, loading,
+    loginWithGoogle,
+    registerPasskey,
+    loginWithPasskey,
+    loginWithDiscoverablePasskey,
+    deletePasskey,
+    enablePushAuth,
+    disablePushAuth,
+    initiatePushLogin,
+    checkPushLoginStatus,
+    respondToPushLogin,
+    logout,
+  }), [
+    user, loading,
+    loginWithGoogle,
+    registerPasskey,
+    loginWithPasskey,
+    loginWithDiscoverablePasskey,
+    deletePasskey,
+    enablePushAuth,
+    disablePushAuth,
+    initiatePushLogin,
+    checkPushLoginStatus,
+    respondToPushLogin,
+    logout,
+  ]);
+
   return (
-    <AuthContext.Provider value={{
-      user, loading,
-      loginWithGoogle,
-      registerPasskey,
-      loginWithPasskey,
-      loginWithDiscoverablePasskey,
-      deletePasskey,
-      enablePushAuth,
-      disablePushAuth,
-      initiatePushLogin,
-      checkPushLoginStatus,
-      respondToPushLogin,
-      logout,
-    }}>
+    <AuthContext.Provider value={authValue}>
       {children}
     </AuthContext.Provider>
   );

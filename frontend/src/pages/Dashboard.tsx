@@ -13,10 +13,12 @@ export default function Dashboard() {
   const [inviteMeeting, setInviteMeeting] = useState<Meeting | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = React.useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
-  };
+  }, []);
+
+  const handleSchedule = React.useCallback(() => setShowSchedule(true), []);
 
   return (
     <div className="dashboard" id="dashboard">
@@ -34,7 +36,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <QuickActions onSchedule={() => setShowSchedule(true)} onShowToast={showToast} />
+      <QuickActions onSchedule={handleSchedule} onShowToast={showToast} />
 
       <UpcomingMeetings meetings={meetings} onShowToast={showToast} onInvite={setInviteMeeting} />
 

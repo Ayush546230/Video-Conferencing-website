@@ -10,7 +10,7 @@ interface Props {
   onShowToast: (msg: string) => void;
 }
 
-export default function QuickActions({ onSchedule, onShowToast }: Props) {
+const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast }: Props) {
   const navigate = useNavigate();
   const { createInstantMeeting, meetings } = useMeetings();
   const [linkBox, setLinkBox] = useState<{link: string, roomName: string} | null>(null);
@@ -83,4 +83,6 @@ export default function QuickActions({ onSchedule, onShowToast }: Props) {
       </div>
     </div>
   );
-}
+});
+
+export default QuickActions;

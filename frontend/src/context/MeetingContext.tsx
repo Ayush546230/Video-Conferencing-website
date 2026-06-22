@@ -278,24 +278,38 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     return res.data;
   }, []);
 
+  const contextValue = React.useMemo(() => ({
+    meetings,
+    userProfile,
+    userPreferences,
+    loading,
+    createInstantMeeting,
+    scheduleMeeting,
+    addToHistory,
+    cancelMeeting,
+    deleteMeeting,
+    updateProfile,
+    updatePreferences,
+    refreshMeetings,
+    sendInvites,
+  }), [
+    meetings,
+    userProfile,
+    userPreferences,
+    loading,
+    createInstantMeeting,
+    scheduleMeeting,
+    addToHistory,
+    cancelMeeting,
+    deleteMeeting,
+    updateProfile,
+    updatePreferences,
+    refreshMeetings,
+    sendInvites,
+  ]);
+
   return (
-    <MeetingContext.Provider
-      value={{
-        meetings,
-        userProfile,
-        userPreferences,
-        loading,
-        createInstantMeeting,
-        scheduleMeeting,
-        addToHistory,
-        cancelMeeting,
-        deleteMeeting,
-        updateProfile,
-        updatePreferences,
-        refreshMeetings,
-        sendInvites,
-      }}
-    >
+    <MeetingContext.Provider value={contextValue}>
       {children}
     </MeetingContext.Provider>
   );

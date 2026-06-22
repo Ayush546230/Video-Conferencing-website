@@ -9,7 +9,7 @@ interface Props {
   onInvite: (meeting: Meeting) => void;
 }
 
-export default function UpcomingMeetings({ meetings, onShowToast, onInvite }: Props) {
+const UpcomingMeetings = React.memo(function UpcomingMeetings({ meetings, onShowToast, onInvite }: Props) {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -50,4 +50,6 @@ export default function UpcomingMeetings({ meetings, onShowToast, onInvite }: Pr
       </div>
     </div>
   );
-}
+});
+
+export default UpcomingMeetings;

@@ -12,7 +12,7 @@ interface Props {
   onInvite: (meeting: Meeting) => void;
 }
 
-export default function MeetingCard({ meeting, onShowToast, onInvite }: Props) {
+const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onInvite }: Props) {
   const [showDesc, setShowDesc] = React.useState(false);
   const navigate = useNavigate();
   const { cancelMeeting } = useMeetings();
@@ -113,4 +113,6 @@ export default function MeetingCard({ meeting, onShowToast, onInvite }: Props) {
       </div>
     </div>
   );
-}
+});
+
+export default MeetingCard;
