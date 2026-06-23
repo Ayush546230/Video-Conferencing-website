@@ -323,7 +323,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                           </div>
                         ))}
                         <div 
-                          onClick={() => { setNotifMode('custom'); setTempNotif({ ...tempNotif, amount: 10, unit: 'minutes before' }); }}
+                          onClick={() => { setNotifMode('custom'); setTempNotif({ ...tempNotif, amount: 10 }); }}
                           style={{ 
                             padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', cursor: 'pointer',
                             border: '1px solid var(--border)', color: 'var(--text)'
@@ -338,17 +338,12 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                       <div style={{ marginBottom: 16 }}>
                         <input 
                           type="number" 
-                          min="1"
                           value={tempNotif.amount}
-                          onChange={e => {
-                            const val = parseInt(e.target.value, 10);
-                            if (!isNaN(val) && val >= 1) {
-                              setTempNotif({ ...tempNotif, amount: val });
-                            }
-                          }}
+                          onChange={e => setTempNotif({ ...tempNotif, amount: e.target.value })}
                           style={{ 
                             width: '80px', padding: '6px 10px', borderRadius: 'var(--radius-sm)', 
-                            border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)',
+                            border: `1px solid ${Number(tempNotif.amount) < 1 ? 'var(--error, #ef4444)' : 'var(--border)'}`, 
+                            background: 'var(--bg-card)', color: 'var(--text)',
                             fontSize: '0.9rem', outline: 'none'
                           }}
                         />
@@ -390,6 +385,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                     <button 
                       type="button" 
                       className="btn btn-primary btn-sm"
+                      disabled={notifMode === 'custom' && Number(tempNotif.amount) < 1}
                       onClick={() => {
                         setNotification(tempNotif);
                         setShowNotifDropdown(false);
