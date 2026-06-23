@@ -337,10 +337,8 @@ function GooglePanel({ onSuccess, clientId }) {
     let resizeTimer;
     const renderGoogleBtn = () => {
       if (!btnRef.current) return;
-      // Get the available width from the parent container
-      const parentWidth = btnRef.current.parentElement.offsetWidth;
-      // Bound the width between 200px and 320px (max width of Passkey button)
-      const btnWidth = Math.max(200, Math.min(320, parentWidth));
+      // Use the wrapper div's own width (capped to match other buttons)
+      const btnWidth = btnRef.current.offsetWidth || 320;
       
       // Clear previous button render
       btnRef.current.innerHTML = '';
@@ -376,6 +374,7 @@ function GooglePanel({ onSuccess, clientId }) {
             justifyContent: 'center', 
             minHeight: '40px', 
             width: '100%',
+            maxWidth: '320px',
             opacity: loading ? 0.4 : 1,
             pointerEvents: loading ? 'none' : 'auto',
             transition: 'opacity 0.2s'
