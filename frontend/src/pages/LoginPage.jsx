@@ -337,8 +337,8 @@ function GooglePanel({ onSuccess, clientId }) {
     let resizeTimer;
     const renderGoogleBtn = () => {
       if (!btnRef.current) return;
-      // Use the wrapper div's own width (capped to match other buttons)
-      const btnWidth = btnRef.current.offsetWidth || 320;
+      // Cap at 320px to match Passkey/Single-Click buttons
+      const btnWidth = Math.min(320, btnRef.current.parentElement?.offsetWidth || 320);
       
       // Clear previous button render
       btnRef.current.innerHTML = '';
@@ -375,6 +375,8 @@ function GooglePanel({ onSuccess, clientId }) {
             minHeight: '40px', 
             width: '100%',
             maxWidth: '320px',
+            overflow: 'hidden',
+            borderRadius: '4px',
             opacity: loading ? 0.4 : 1,
             pointerEvents: loading ? 'none' : 'auto',
             transition: 'opacity 0.2s'
