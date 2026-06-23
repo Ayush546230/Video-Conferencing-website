@@ -232,7 +232,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 50,
                   background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                  width: '320px', boxShadow: 'var(--shadow-lg)', padding: '12px'
+                  width: 'min(320px, calc(100vw - 32px))', boxShadow: 'var(--shadow-lg)', padding: '12px'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', background: 'var(--bg-card)', padding: '6px 12px', borderRadius: 'var(--radius-sm)', marginBottom: 8 }}>
                     <Search size={14} color="var(--text-muted)" style={{ marginRight: 8, flexShrink: 0 }} />
@@ -295,9 +295,9 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
 
               {showNotifDropdown && (
                 <div style={{
-                  position: 'absolute', top: '100%', right: 0, marginTop: 4, zIndex: 50,
+                  position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 4, zIndex: 50,
                   background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-                  width: '320px', boxShadow: 'var(--shadow-lg)', padding: '16px'
+                  boxShadow: 'var(--shadow-lg)', padding: '16px'
                 }}>
                   {notifMode === 'quick' ? (
                     <div>
