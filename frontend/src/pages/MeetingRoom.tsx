@@ -147,15 +147,15 @@ export default function MeetingRoom() {
     );
   }
 
-  const handleLeave = async () => {
+  const handleLeave = () => {
     if (isHost) {
       const durationMin = Math.round((Date.now() - joinTime.current) / 60000);
       const meeting = meetings.find(m => m.roomName === roomName);
       if (meeting) {
-        await addToHistory({ ...meeting, duration: durationMin });
+        addToHistory({ ...meeting, duration: durationMin });
       }
     }
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
