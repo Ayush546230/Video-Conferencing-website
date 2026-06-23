@@ -338,8 +338,14 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                       <div style={{ marginBottom: 16 }}>
                         <input 
                           type="number" 
+                          min="1"
                           value={tempNotif.amount}
-                          onChange={e => setTempNotif({ ...tempNotif, amount: e.target.value })}
+                          onChange={e => {
+                            const val = parseInt(e.target.value, 10);
+                            if (!isNaN(val) && val >= 1) {
+                              setTempNotif({ ...tempNotif, amount: val });
+                            }
+                          }}
                           style={{ 
                             width: '80px', padding: '6px 10px', borderRadius: 'var(--radius-sm)', 
                             border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text)',
