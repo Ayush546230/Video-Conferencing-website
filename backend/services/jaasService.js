@@ -44,7 +44,7 @@ export const generateJaaSToken = (user, roomName, isModerator = false) => {
         id: user._id ? user._id.toString() : 'guest',
         name: user.name || user.email || 'Guest',
         email: user.email || '',
-        avatar: user.avatar || '',
+        avatar: (user.avatar && user.avatar.length < 500) ? user.avatar : '',
         moderator: isModerator,
       },
       features: {
