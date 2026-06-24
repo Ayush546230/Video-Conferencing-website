@@ -103,7 +103,7 @@ function getMeetingReminderHTML(meeting) {
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #f5f5f5;">
-  <div style="background: linear-gradient(135deg, #475569 0%, #334155 100%); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
+  <div style="background: #1a1a2e; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
     <img src="${frontendUrl}/Hi_Logo.png" alt="hi logo" style="max-height: 50px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" />
     <h2 style="color: white; margin: 8px 0 0; font-size: 24px;">Meeting Reminder</h2>
   </div>
@@ -209,7 +209,7 @@ function getMeetingCancellationHTML(meeting, senderName) {
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #f5f5f5;">
-  <div style="background: linear-gradient(135deg, #475569 0%, #334155 100%); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
+  <div style="background: #1a1a2e; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
     <img src="${frontendUrl}/Hi_Logo.png" alt="hi logo" style="max-height: 50px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" />
     <h2 style="color: white; margin: 8px 0 0; font-size: 24px;">Meeting Cancelled</h2>
   </div>
