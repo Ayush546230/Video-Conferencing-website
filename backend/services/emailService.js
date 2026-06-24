@@ -105,9 +105,11 @@ function getMeetingReminderHTML(meeting) {
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #f5f5f5;">
   <div style="background: #1a1a2e; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
     <img src="${frontendUrl}/Hi_Logo.png" alt="hi logo" style="max-height: 50px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" />
-    <h2 style="color: white; margin: 8px 0 0; font-size: 24px;">Meeting Reminder</h2>
+    <br/>
+    <img src="${frontendUrl}/powered_by_aiRender.png" alt="powered by aiRender" style="max-height: 24px; opacity: 0.9;" />
   </div>
   <div style="background: white; padding: 32px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <h2 style="color: #1a1a2e; margin: 0 0 8px;">Meeting Reminder</h2>
     <p style="color: #666; font-size: 16px; margin: 0 0 24px;">This is an automated reminder that your scheduled video conference will begin in <strong>${timeText}</strong>.</p>
     
     <div style="background: #fff5f5; border-left: 4px solid #ff6b6b; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
@@ -123,10 +125,9 @@ function getMeetingReminderHTML(meeting) {
     </div>
 
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-    <div style="text-align: center;">
-      <p style="color: #aaa; font-size: 11px; margin: 0 0 8px;">Reminder from <strong>hi</strong></p>
-      <img src="${frontendUrl}/powered_by_aiRender.png" alt="powered by aiRender" style="max-height: 18px; filter: grayscale(100%) opacity(0.6);" />
-    </div>
+    <p style="color: #aaa; font-size: 11px; text-align: center; margin: 0;">
+      This reminder was sent via <strong>hi</strong> — Premium Video Conferencing by aiRender
+    </p>
   </div>
 </body>
 </html>`;
@@ -211,9 +212,11 @@ function getMeetingCancellationHTML(meeting, senderName) {
 <body style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 0; background: #f5f5f5;">
   <div style="background: #1a1a2e; padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
     <img src="${frontendUrl}/Hi_Logo.png" alt="hi logo" style="max-height: 50px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" />
-    <h2 style="color: white; margin: 8px 0 0; font-size: 24px;">Meeting Cancelled</h2>
+    <br/>
+    <img src="${frontendUrl}/powered_by_aiRender.png" alt="powered by aiRender" style="max-height: 24px; opacity: 0.9;" />
   </div>
   <div style="background: white; padding: 32px; border-radius: 0 0 12px 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+    <h2 style="color: #1a1a2e; margin: 0 0 8px;">Meeting Cancelled</h2>
     <p style="color: #666; margin: 0 0 24px;">${senderName} has cancelled the following scheduled meeting.</p>
     
     <div style="background: #f8f9ff; border-left: 4px solid #475569; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
@@ -222,10 +225,9 @@ function getMeetingCancellationHTML(meeting, senderName) {
     </div>
 
     <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-    <div style="text-align: center;">
-      <p style="color: #aaa; font-size: 11px; margin: 0 0 8px;">Notification from <strong>hi</strong></p>
-      <img src="${frontendUrl}/powered_by_aiRender.png" alt="powered by aiRender" style="max-height: 18px; filter: grayscale(100%) opacity(0.6);" />
-    </div>
+    <p style="color: #aaa; font-size: 11px; text-align: center; margin: 0;">
+      This notification was sent via <strong>hi</strong> — Premium Video Conferencing by aiRender
+    </p>
   </div>
 </body>
 </html>`;
