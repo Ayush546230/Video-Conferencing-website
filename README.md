@@ -1,162 +1,172 @@
-# aiRender: Advanced Video Conferencing & Authentication Platform
+# hi — Premium Video Conferencing by aiRender
 
-A comprehensive full-stack MERN (MongoDB, Express, React, Node.js) enterprise application demonstrating modern, passwordless authentication alongside a fully featured, branded video conferencing dashboard. This project integrates seamless authentication flows with a high-performance video communication suite powered by Jitsi as a Service (JaaS).
-
-## 🌟 Key Features
-
-### Enterprise Video Conferencing (JaaS Integration)
-- **Instant & Scheduled Meetings**: Easily launch instant meetings or schedule future sessions with dedicated meeting URLs.
-- **Intelligent Time Zone Management**: Integrated scheduling logic powered by `luxon` that automatically detects the user's local time zone, defaults new meetings to the nearest 30-minute block, and sets an intelligent 1-hour default duration.
-- **Pre-Join Lobby**: Professional waiting area allowing users to configure audio and video settings before joining an active meeting.
-- **Private Meeting Rooms**: Enterprise-grade host controls featuring a functional lobby where hosts can explicitly admit or deny guests.
-- **Automated Host Privileges**: Secure JWT-based host authentication that automatically identifies meeting creators as Moderators with full host privileges.
-- **Custom Branding**: Fully branded "hi" UI experience, powered by aiRender, with streamlined interfaces and removed legacy Jitsi watermarks.
-- **Seamless Reconnection**: Robust handling of meeting lifecycle events, preventing disruptive post-call screens and ensuring a smooth lobby-to-meeting transition.
-
-### Advanced Authentication Suite
-- **Google OAuth Integration**: Streamlined single sign-on (SSO) utilizing Google's identity services for quick access.
-- **Passkey Authentication (WebAuthn)**: Biometric and hardware-based authentication (Fingerprint, Face ID, Windows Hello) for enhanced security and a frictionless, passwordless login.
-- **Push Notification Authentication**: Out-of-band (OOB) authentication allowing users to securely approve desktop login requests directly via mobile device push notifications.
+Welcome to **hi**, a modern, secure, and feature-rich video conferencing platform designed to provide a seamless meeting experience. Built with React, Node.js, and powered by Jitsi as a Service (JaaS), **hi** combines high-quality video communication with cutting-edge authentication mechanisms.
 
 ---
 
-## 🏗️ Tech Stack
+## 🚀 Features
 
-| Component | Technology |
-|-----------|------------|
-| **Frontend UI** | React 18, TypeScript, Vite, React Router, Lucide React |
-| **Backend API** | Node.js, Express 5 |
-| **Database** | MongoDB, Mongoose |
-| **Video Platform**| `@jitsi/react-sdk` (Jitsi as a Service) |
-| **OAuth** | `google-auth-library` |
-| **Passkeys** | `@simplewebauthn` |
-| **Push Notifications**| Web Push API (VAPID) |
-| **Security** | Helmet, Rate Limiting, CORS, JWT, HTTP-only Cookies |
+### 🔐 Advanced Security & Authentication
+- **Google Sign-In**: Quick and secure login using your Google account.
+- **Passkeys (WebAuthn)**: Passwordless, biometric authentication for maximum security and convenience.
+- **Single-Click Login**: Frictionless entry for returning users.
+- **Push Notification Login**: Approve login requests securely via mobile push notifications.
+
+### 🎥 Premium Video Conferencing
+- **Jitsi as a Service (JaaS) Integration**: Reliable, high-definition video and audio communication.
+- **Meeting Dashboard**: Intuitive interface to schedule new meetings, view upcoming ones, and check your meeting history.
+- **Host Privileges**: Meeting creators are automatically assigned Moderator roles with full control.
+
+### 📅 Smart Scheduling & Notifications
+- **Automated Emails**: Beautifully designed email templates for meeting invitations, reminders, and cancellations.
+- **Brevo API Integration**: Reliable email delivery ensuring your participants never miss an update.
+- **Calendar Attachments**: Includes `.ics` files in emails so participants can easily add meetings to their personal calendars.
+- **Automated Reminders**: Built-in cron jobs automatically notify participants before a meeting starts.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Technology Stack
 
-Follow these instructions to set up and run the project locally.
+- **Frontend**: React 18, Vite, Tailwind CSS / Custom CSS, Jitsi React SDK, SimpleWebAuthn
+- **Backend**: Node.js, Express, MongoDB, Mongoose, JWT, Node-Cron, Web-Push, Brevo API
 
-### Prerequisites
-- Node.js (v18 or higher)
-- MongoDB (Local instance or MongoDB Atlas cluster)
-- Google Cloud Platform account (for OAuth credentials)
-- Jitsi as a Service (JaaS) Account / API Keys
+---
 
-### 1. Installation
+## 🔑 Step-by-Step API & Services Setup Guide
 
-Clone the repository and install dependencies for both the frontend and backend:
+To run this project locally, you need to set up several third-party services. Follow these detailed steps to obtain all the necessary credentials.
 
+### 1. MongoDB Database Setup (`MONGODB_URI`)
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register) and create a free account.
+2. Create a new **Cluster** (the free shared tier is fine).
+3. Once the cluster is ready, click **Connect**.
+4. Set up a Database User (create a username and password). *Save this password.*
+5. Allow access from anywhere (Network Access -> Add IP Address -> `0.0.0.0/0`) for local development.
+6. Choose **Connect your application** and copy the connection string.
+7. Replace `<password>` in the connection string with the password you created. This is your `MONGODB_URI`.
+
+### 2. Google Sign-In Setup (`GOOGLE_CLIENT_ID`)
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new Project (e.g., "hi-video-conferencing").
+3. Go to **APIs & Services > OAuth consent screen**.
+   - Choose **External** and click Create.
+   - Fill in the required fields (App name, support email, developer email) and click Save and Continue.
+4. Go to **APIs & Services > Credentials**.
+   - Click **+ CREATE CREDENTIALS** -> **OAuth client ID**.
+   - Application type: **Web application**.
+   - Under **Authorized JavaScript origins**, add: `http://localhost:3000` (and `http://localhost:5173` if using Vite defaults).
+   - Click **Create**.
+5. Copy the generated **Client ID**. This is your `GOOGLE_CLIENT_ID`.
+
+### 3. Jitsi as a Service (JaaS) Setup
+*Required for the video conferencing room and host authentication.*
+1. Go to [JaaS by 8x8](https://jaas.8x8.vc/) and sign up for an account.
+2. Go to the **API Keys** section in the JaaS Console.
+3. Click **Add API Key**.
+4. Generate an RSA Key Pair:
+   - **App ID**: Your unique App ID is displayed at the top of the console (e.g., `vpaas-magic-cookie-...`). This is your `JAAS_APP_ID`.
+   - **API Key ID**: When you generate a new key, you will get an API Key ID (e.g., `kid_...`). This is your `JAAS_API_KEY`.
+   - **Private Key**: Download the `.pkcs8` private key file. Open it in a text editor. The entire block of text (including `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----`) is your `JAAS_PRIVATE_KEY`.
+
+### 4. Brevo Email API Setup (`BREVO_API_KEY`)
+*Required for sending meeting invites, reminders, and cancellations.*
+1. Go to [Brevo (formerly Sendinblue)](https://www.brevo.com/) and create a free account.
+2. Complete your profile and verify your account.
+3. In the top right corner, click your profile name and select **SMTP & API**.
+4. Go to the **API Keys** tab and click **Generate a new API key**.
+5. Name your key and click Generate.
+6. Copy the key immediately. This is your `BREVO_API_KEY`.
+7. Your `SMTP_USER` is simply the email address you used to register your Brevo account (or an authorized sender email).
+
+### 5. VAPID Keys for Push Notifications
+*Required for sending push notifications for login.*
+1. You can generate these keys directly from your terminal using the `web-push` library.
+2. Run the following command in your backend directory:
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+3. The command will output a **Public Key** and a **Private Key**.
+4. Save these as your `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`.
+
+---
+
+## 💻 Getting Started (Installation & Running)
+
+### 1. Clone the repository
 ```bash
-# Install root dependencies
-npm install
-
-# Install frontend and backend dependencies concurrently
-npm run install:all
+git clone https://github.com/Ayush546230/Video-Conferencing-website.git
+cd Video-Conferencing-website
 ```
 
-### 2. Backend Configuration
-
-Navigate to the `backend` directory and configure your environment variables:
-
+### 2. Backend Setup
+Navigate to the backend directory and install dependencies:
 ```bash
 cd backend
-cp .env.example .env
+npm install
 ```
-*Edit the `.env` file and provide your MongoDB connection string, JWT secrets, and JaaS App ID / RSA Private Key for host authentication.*
 
-### 3. Frontend Configuration
+Create a `.env` file in the `backend` directory and fill it with the keys you gathered above:
+```env
+PORT=5000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=generate_a_random_secret_string_here
 
-Navigate to the `frontend` directory and configure the environment variables:
+# Frontend URL (Update if Vite runs on a different port)
+FRONTEND_URL=http://localhost:5173
 
-```bash
-cd frontend
-cp .env.example .env
+# Google Auth
+GOOGLE_CLIENT_ID=your_google_client_id
+
+# WebAuthn (Passkeys)
+RP_ID=localhost
+EXPECTED_ORIGIN=http://localhost:5173
+
+# Push Notifications
+VAPID_PUBLIC_KEY=your_vapid_public_key
+VAPID_PRIVATE_KEY=your_vapid_private_key
+
+# Jitsi as a Service
+JAAS_APP_ID=your_jaas_app_id
+JAAS_API_KEY=your_jaas_api_key_id
+JAAS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...your...key...here...\n-----END PRIVATE KEY-----"
+
+# Brevo Emails
+BREVO_API_KEY=your_brevo_api_key
+SMTP_USER=your_sender_email_address
 ```
-*Edit the `.env` file and provide your `VITE_GOOGLE_CLIENT_ID`, VAPID keys, and `VITE_JAAS_APP_ID`.*
 
-### 4. Running the Application
-
-Return to the root directory and start the development servers:
-
+Start the backend development server:
 ```bash
 npm run dev
 ```
 
-- **Frontend Application**: `http://localhost:3000`
-- **Backend API**: `http://localhost:5000`
-
----
-
-## 🔑 Authentication Flows Explained
-
-### Passkeys (WebAuthn)
-- Utilizes device-level biometrics (e.g., Touch ID, Face ID, Windows Hello).
-- Eliminates password-related vulnerabilities (phishing, credential stuffing) through public key cryptography.
-
-### Push Notification Authentication
-- Facilitates cross-device login. A user attempting to authenticate on a desktop triggers a push notification to their registered mobile device.
-- Upon approval on the mobile device, the desktop session is authorized automatically.
-
-### Google OAuth
-- Supports both the "One Tap" prompt and standard button-based sign-in.
-- The backend securely verifies the ID token to authenticate the user session.
-
----
-
-## 🛡️ Security & Privacy Measures
-
-- **Private Meetings**: Explicit host approval workflows prevent unauthorized guests from joining active meetings.
-- **JSON Web Tokens (JWT)**: Used for stateless session management and generating secure Jitsi host tokens.
-- **Secure Cookies**: Critical tokens are stored in `HttpOnly`, `Secure` (in production), and `SameSite` cookies to mitigate XSS attacks.
-- **Rate Limiting & Helmet**: API endpoints are protected against brute-force attacks and enforced with secure HTTP headers.
-
----
-
-## 📁 Project Structure
-
-```text
-auth-showcase/
-├── backend/
-│   ├── controllers/
-│   │   ├── authController.js      # Google OAuth logic
-│   │   ├── meetingsController.js  # JaaS JWT generation & meeting logic
-│   │   ├── passkeyController.js   # WebAuthn logic
-│   │   └── pushAuthController.js  # Push notification handling
-│   ├── routes/
-│   │   ├── auth.js                # OAuth routes
-│   │   ├── meetings.js            # Video conferencing endpoints
-│   │   ├── passkeys.js            # WebAuthn routes
-│   │   └── pushAuth.js            # Push authentication routes
-│   └── server.js                  # Express application entry point
-└── frontend/
-    └── src/
-        ├── components/
-        │   ├── dashboard/         # Dashboard & recent meetings UI
-        │   ├── meeting/           # JitsiRoom and PreJoinScreen components
-        │   ├── schedule/          # Meeting scheduling and invite logic
-        │   └── Navbar.tsx         # Branded navigation
-        ├── pages/
-        │   ├── LoginPage.jsx      # Multi-flow auth interface
-        │   └── DashboardPage.jsx  # Main application dashboard
-        └── App.tsx                # Routing configuration
+### 3. Frontend Setup
+Open a new terminal window, navigate to the frontend directory, and install dependencies:
+```bash
+cd frontend
+npm install
 ```
 
+Create a `.env` file in the `frontend` directory:
+```env
+VITE_API_URL=http://localhost:5000
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_VAPID_PUBLIC_KEY=your_vapid_public_key
+VITE_JAAS_APP_ID=your_jaas_app_id
+```
+
+Start the frontend development server:
+```bash
+npm run dev
+```
+
+The application should now be running at `http://localhost:5173`. Open this URL in your browser to start using **hi**.
+
 ---
 
-## 🌐 API Reference
+## 📝 License
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/google` | Verifies Google ID token and issues application JWT. |
-| `GET` | `/api/meetings` | Retrieves user's scheduled and recent meetings. |
-| `POST` | `/api/meetings/schedule` | Schedules a new video meeting with privacy options. |
-| `GET` | `/api/meetings/token/:room` | Generates a JaaS JWT for moderator/host privileges. |
-| `POST` | `/api/passkeys/auth/...` | Initiates and verifies WebAuthn authentication. |
-| `POST` | `/api/push-auth/request` | Triggers a push notification to a mobile device. |
+This project is licensed under the MIT License.
 
 ---
-
-*Powered by aiRender.*
+*Powered by aiRender*
