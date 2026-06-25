@@ -116,7 +116,14 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
             subject: roomName,
             lobby: {
               enableChat: false
-            }
+            },
+            disableTranscriptionSubtitles: true,
+            transcribingEnabled: false,
+            toolbarButtons: [
+              'microphone', 'camera', 'desktop', 'chat',
+              'raisehand', 'participants-pane', 'tileview',
+              'settings', 'fullscreen', 'hangup',
+            ]
           }}
           interfaceConfigOverwrite={{
             SHOW_JITSI_WATERMARK: false,
@@ -129,7 +136,7 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
             TOOLBAR_BUTTONS: [
               'microphone', 'camera', 'desktop', 'chat',
               'raisehand', 'participants-pane', 'tileview',
-              'select-background', 'fullscreen', 'hangup',
+              'settings', 'fullscreen', 'hangup',
             ],
           }}
           getIFrameRef={(iframeRef) => {
