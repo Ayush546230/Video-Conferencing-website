@@ -48,10 +48,21 @@ app.use(
   })
 );
 
-// ─── Rate Limiting (Disabled for now) ──────────────────────
-// const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-// app.use('/api/', limiter);
-// const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
+// ─── Rate Limiting ─────────────────────────────────────────
+// General API rate limiter (protects against general DDoS)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 500, // Limit each IP to 500 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', apiLimiter);
+
+// Strict rate limiter for Authentication
+const authLimiter = rateLimit({ 
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 10 auth requests per windowMs
+  message: { error: 'Too many authentication attempts, please try again after 15 minutes' }
+});
 
 // ─── Body Parsing ──────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
@@ -84,9 +95,9 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // ─── Routes ────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
-app.use('/api/passkeys', passkeyRoutes);
-app.use('/api/push-auth', pushAuthRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/passkeys', authLimiter, passkeyRoutes);
+app.use('/api/push-auth', authLimiter, pushAuthRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/users', userRoutes);
 
