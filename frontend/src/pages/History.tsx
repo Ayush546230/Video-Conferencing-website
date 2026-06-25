@@ -55,30 +55,26 @@ export default function History() {
         <div className="history-list">
           {allMeetings.map(m => (
             <div key={m.id} className="history-item" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-              <div style={{ display: 'flex', width: '100%', gap: '16px', alignItems: 'flex-start' }}>
+              <div style={{ display: 'flex', width: '100%', gap: '12px', alignItems: 'center' }}>
                 <div className={`history-icon ${m.status === 'completed' ? '' : ''}`} style={{ flexShrink: 0 }}>
                   <Video size={20} />
                 </div>
                 <div className="history-details" style={{ flex: 1, minWidth: 0 }}>
-                  <h4 style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</h4>
-                  <p>{formatDate(m.startTime)} • 👥 {m.participants.length}</p>
+                  <h4 style={{ wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.3', marginBottom: '4px' }}>{m.title}</h4>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    {formatDate(m.startTime)} • 👥 {m.participants.length} <span className="hide-on-mobile">• {typeof m.duration === 'number' ? formatDuration(m.duration) : ''}</span> • {getRelativeTime(m.createdAt)}
+                  </p>
                 </div>
-                <div className="history-right" style={{ flexShrink: 0 }}>
-                  <div className="history-meta">
-                    {typeof m.duration === 'number' && <div className="duration hide-on-mobile">{formatDuration(m.duration)}</div>}
-                    <div className="time" style={{ marginBottom: 4 }}>{getRelativeTime(m.createdAt)}</div>
-                  </div>
-                  <div className="history-actions" style={{ display: 'flex', gap: 4 }}>
-                    <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
-                      <Video size={16} />
-                    </button>
-                    <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
-                      <Copy size={16} />
-                    </button>
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                <div className="history-right" style={{ flexShrink: 0, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px' }}>
+                  <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
+                    <Video size={16} />
+                  </button>
+                  <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
+                    <Copy size={16} />
+                  </button>
+                  <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
               
