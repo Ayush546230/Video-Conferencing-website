@@ -54,59 +54,63 @@ export default function History() {
       ) : (
         <div className="history-list">
           {allMeetings.map(m => (
-            <div key={m.id} className="history-item">
-              <div className={`history-icon ${m.status === 'completed' ? '' : ''}`}>
-                <Video size={20} />
-              </div>
-              <div className="history-details">
-                <h4>{m.title}</h4>
-                <p>{formatDate(m.startTime)} • 👥 {m.participants.length}</p>
-                {m.description && (
-                  <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                    {m.description.length <= 50 ? (
-                      <span style={{ wordBreak: 'break-word' }}>{m.description}</span>
-                    ) : expandedDescId === m.id ? (
-                      <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', maxHeight: '4.8em', overflowY: 'auto', paddingRight: 4 }}>
-                        {m.description}
-                        <span 
-                          style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: 8, fontWeight: 500, whiteSpace: 'nowrap' }}
-                          onClick={() => setExpandedDescId(null)}
-                        >
-                          show less
-                        </span>
-                      </div>
-                    ) : (
-                      <span style={{ wordBreak: 'break-word' }}>
-                        {m.description.slice(0, 50)}...
-                        <span 
-                          style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: 8, fontWeight: 500, whiteSpace: 'nowrap' }}
-                          onClick={() => setExpandedDescId(m.id)}
-                        >
-                          see more
-                        </span>
-                      </span>
-                    )}
+            <div key={m.id} className="history-item" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              <div style={{ display: 'flex', width: '100%', gap: '16px', alignItems: 'flex-start' }}>
+                <div className={`history-icon ${m.status === 'completed' ? '' : ''}`} style={{ flexShrink: 0 }}>
+                  <Video size={20} />
+                </div>
+                <div className="history-details" style={{ flex: 1, minWidth: 0 }}>
+                  <h4 style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</h4>
+                  <p>{formatDate(m.startTime)} • 👥 {m.participants.length}</p>
+                </div>
+                <div className="history-right" style={{ flexShrink: 0 }}>
+                  <div className="history-meta">
+                    {typeof m.duration === 'number' && <div className="duration hide-on-mobile">{formatDuration(m.duration)}</div>}
+                    <div className="time" style={{ marginBottom: 4 }}>{getRelativeTime(m.createdAt)}</div>
                   </div>
-                )}
-              </div>
-              <div className="history-right">
-                <div className="history-meta">
-                  {typeof m.duration === 'number' && <div className="duration hide-on-mobile">{formatDuration(m.duration)}</div>}
-                  <div className="time">{getRelativeTime(m.createdAt)}</div>
-                </div>
-                <div className="history-actions" style={{ display: 'flex', gap: 4 }}>
-                  <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
-                    <Video size={16} />
-                  </button>
-                  <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
-                    <Copy size={16} />
-                  </button>
-                  <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="history-actions" style={{ display: 'flex', gap: 4 }}>
+                    <button className="btn btn-green btn-sm btn-icon" onClick={() => navigate(`/meeting/${m.roomName}`)} title="Join">
+                      <Video size={16} />
+                    </button>
+                    <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
+                      <Copy size={16} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
+              
+              {m.description && (
+                <div style={{ marginTop: 8, fontSize: '0.85rem', color: 'var(--text-secondary)', background: 'var(--bg)', padding: '12px', borderRadius: '8px' }}>
+                  {m.description.length <= 80 ? (
+                    <span style={{ wordBreak: 'break-word' }}>{m.description}</span>
+                  ) : expandedDescId === m.id ? (
+                    <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap', maxHeight: '10em', overflowY: 'auto', paddingRight: 4 }}>
+                      {m.description}
+                      <span 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: 8, fontWeight: 500, whiteSpace: 'nowrap' }}
+                        onClick={() => setExpandedDescId(null)}
+                      >
+                        show less
+                      </span>
+                    </div>
+                  ) : (
+                    <span style={{ wordBreak: 'break-word' }}>
+                      {m.description.slice(0, 80)}...
+                      <span 
+                        style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: 8, fontWeight: 500, whiteSpace: 'nowrap' }}
+                        onClick={() => setExpandedDescId(m.id)}
+                      >
+                        see more
+                      </span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
+
           ))}
         </div>
       )}
