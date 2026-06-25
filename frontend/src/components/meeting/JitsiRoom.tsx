@@ -59,12 +59,15 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
     const mountTimer = setTimeout(() => {
       setShouldMount(true);
     }, 150);
-    const readyTimer = setTimeout(() => {
+
+    // Fallback: hide loader after 10 seconds if event doesn't fire
+    const fallbackTimer = setTimeout(() => {
       setIsReady(true);
-    }, 2500);
+    }, 10000);
+
     return () => {
       clearTimeout(mountTimer);
-      clearTimeout(readyTimer);
+      clearTimeout(fallbackTimer);
     };
   }, []);
 
@@ -108,7 +111,8 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
           configOverwrite={{
             startWithAudioMuted: audioMuted,
             startWithVideoMuted: videoMuted,
-            prejoinPageEnabled: false,
+            prejoinPageEnabled: true,
+            prejoinConfig: { enabled: true },
             disableModeratorIndicator: true,
             enableInsecureRoomNameWarning: false,
             hideConferenceSubject: false,
@@ -144,16 +148,21 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
             iframeRef.style.width = '100%';
           }}
           onApiReady={(externalApi: any) => {
+            // Hide our custom spinner shortly after the API is ready so the user can see the prejoin screen
+            setTimeout(() => {
+              setIsReady(true);
+            }, 800);
+
+            externalApi.addListener('videoConferenceJoined', () => {
+              if (isHost && isPrivate) {
+                externalApi.executeCommand('toggleLobby', true);
+              }
+            });
             externalApi.addListener('videoConferenceLeft', () => {
               if (!isUnloadingRef.current) {
                 onLeave();
               }
             });
-            if (isHost && isPrivate) {
-              externalApi.addListener('videoConferenceJoined', () => {
-                externalApi.executeCommand('toggleLobby', true);
-              });
-            }
           }}
           onReadyToClose={() => {
             if (!isUnloadingRef.current) {

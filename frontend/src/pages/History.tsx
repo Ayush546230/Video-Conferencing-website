@@ -62,7 +62,11 @@ export default function History() {
                 <div className="history-details" style={{ flex: 1, minWidth: 0 }}>
                   <h4 style={{ wordBreak: 'break-word', whiteSpace: 'normal', lineHeight: '1.3', marginBottom: '4px' }}>{m.title}</h4>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    {formatDate(m.startTime)} • 👥 {m.participants.length} <span className="hide-on-mobile">• {typeof m.duration === 'number' ? formatDuration(m.duration) : ''}</span> • {getRelativeTime(m.createdAt)}
+                    {formatDate(m.startTime)} • 👥 {m.participants.length} 
+                    <span className="hide-on-mobile">
+                      {typeof m.duration === 'number' ? ` • ⏱️ ${formatDuration(m.duration)}` : ''}
+                    </span>
+                    <span style={{ opacity: 0.7 }}> • {getRelativeTime(m.createdAt)}</span>
                   </p>
                 </div>
                 <div className="history-right" style={{ flexShrink: 0, display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px' }}>
