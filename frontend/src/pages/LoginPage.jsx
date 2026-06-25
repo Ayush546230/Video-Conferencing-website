@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -7,6 +7,8 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnUrl = new URLSearchParams(location.search).get('returnUrl') || '/dashboard';
   const { user, registerPasskey, enablePushAuth } = useAuth();
   const [showPasskeyPopup, setShowPasskeyPopup] = useState(false);
   const [popupStatus, setPopupStatus] = useState('ask'); // 'ask' | 'creating' | 'success' | 'error'
@@ -23,9 +25,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && !showPasskeyPopup && !showPushPopup && !popupIntentRef.current) {
-      navigate('/dashboard');
+      navigate(returnUrl);
     }
-  }, [user, showPasskeyPopup, showPushPopup, navigate]);
+  }, [user, showPasskeyPopup, showPushPopup, navigate, returnUrl]);
 
   const handleGoogleSuccess = (loggedInUser) => {
     const pushEnabled = localStorage.getItem('pushEnabled') === 'true';
@@ -42,7 +44,7 @@ export default function LoginPage() {
 
     // 2. Otherwise, check if user already has a passkey
     if (loggedInUser?.authMethods?.passkey) {
-      navigate('/dashboard');
+      navigate(returnUrl);
       return;
     }
 
@@ -62,7 +64,7 @@ export default function LoginPage() {
       setPopupStatus('ask');
     } else {
       popupIntentRef.current = false;
-      navigate('/dashboard');
+      navigate(returnUrl);
     }
   };
 
@@ -82,7 +84,7 @@ export default function LoginPage() {
     }
   };
 
-  const handlePasskeySuccess = () => navigate('/dashboard');
+  const handlePasskeySuccess = () => navigate(returnUrl);
 
   const handleCreatePasskey = async () => {
     setPopupStatus('creating');
@@ -93,7 +95,7 @@ export default function LoginPage() {
       setTimeout(() => {
         popupIntentRef.current = false;
         setShowPasskeyPopup(false);
-        navigate('/dashboard');
+        navigate(returnUrl);
       }, 1500);
     } catch (err) {
       setPopupError(err?.response?.data?.error || err?.message || 'Failed to create passkey');
@@ -104,7 +106,7 @@ export default function LoginPage() {
   const handleSkipPasskey = () => {
     popupIntentRef.current = false;
     setShowPasskeyPopup(false);
-    navigate('/dashboard');
+    navigate(returnUrl);
   };
 
   return (
@@ -441,6 +443,8 @@ const urlBase64ToUint8Array = (base64String) => {
 function PushLoginPanel() {
   const { initiatePushLogin, checkPushLoginStatus } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnUrl = new URLSearchParams(location.search).get('returnUrl') || '/dashboard';
   const [step, setStep] = useState('idle'); // 'idle' | 'checking' | 'sending' | 'waiting' | 'approved' | 'denied' | 'expired' | 'error'
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState(null);
@@ -477,7 +481,7 @@ function PushLoginPanel() {
           clearInterval(pollRef.current);
           clearInterval(countdownRef.current);
           setStep('approved');
-          setTimeout(() => navigate('/dashboard'), 1200);
+          setTimeout(() => navigate(returnUrl), 1200);
         } else if (res.status === 'denied') {
           clearInterval(pollRef.current);
           clearInterval(countdownRef.current);

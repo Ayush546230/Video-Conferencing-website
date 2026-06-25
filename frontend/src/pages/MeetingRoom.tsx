@@ -3,16 +3,23 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useMeetings } from '../context/MeetingContext';
 import PreJoinScreen from '../components/meeting/PreJoinScreen';
 import JitsiRoom from '../components/meeting/JitsiRoom';
-import { API } from '../context/AuthContext';
+import { API, useAuth } from '../context/AuthContext';
 
 export default function MeetingRoom() {
   const { roomName } = useParams<{ roomName: string }>();
   const navigate = useNavigate();
   const { userProfile, userPreferences, addToHistory, meetings, loading } = useMeetings();
+  const { user, loading: authLoading } = useAuth();
   const joinTime = useRef<number>(Date.now());
   const [roomData, setRoomData] = useState<any>(null);
   const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate(`/login?returnUrl=/meeting/${roomName}`);
+    }
+  }, [authLoading, user, navigate, roomName]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -64,6 +71,20 @@ export default function MeetingRoom() {
 
   if (!roomName) {
     navigate('/');
+    return null;
+  }
+
+  // If auth is still loading, show a spinner
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)' }}>
+        <div className="spinner" style={{ borderTopColor: 'var(--primary)', width: 40, height: 40, borderWidth: 3 }}></div>
+      </div>
+    );
+  }
+
+  // If user is not authenticated, render nothing while redirecting
+  if (!user) {
     return null;
   }
 
