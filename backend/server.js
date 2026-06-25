@@ -112,4 +112,16 @@ app.listen(PORT, () => {
   startReminderScheduler();
 });
 
+// ─── Render Keep-Alive ─────────────────────────────────────
+// Free instances spin down after 15 minutes of inactivity.
+// This periodically pings the health endpoint to keep it awake.
+const RENDER_URL = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+if (RENDER_URL) {
+  setInterval(() => {
+    fetch(`${RENDER_URL}/api/health`)
+      .then(res => console.log(`[Keep-Alive] Pinged ${RENDER_URL} - Status: ${res.status}`))
+      .catch(err => console.error(`[Keep-Alive] Ping failed:`, err.message));
+  }, 14 * 60 * 1000); // 14 minutes
+}
+
 export default app;
