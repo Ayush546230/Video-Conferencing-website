@@ -253,7 +253,13 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
           <button 
             onClick={() => {
               setShowEndCallMenu(false);
-              onLeave(); // This unmounts the component to let host leave without ending meeting
+              if (externalApiRef.current) {
+                externalApiRef.current.executeCommand('hangup');
+              }
+              // Wait for videoConferenceLeft event to trigger onLeave, but add fallback
+              setTimeout(() => {
+                if (!isUnloadingRef.current) onLeave();
+              }, 500);
             }}
             style={{
               padding: '12px 20px',
@@ -278,14 +284,13 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
           <button 
             onClick={() => {
               setShowEndCallMenu(false);
+              if (externalApiRef.current) {
+                externalApiRef.current.executeCommand('hangup');
+              }
               if (onEndForAll) {
                 onEndForAll(); // Tell parent to mark meeting as completed
-              } else if (externalApiRef.current) {
-                // Fallback attempt
-                externalApiRef.current.executeCommand('endConference');
-                onLeave();
               } else {
-                onLeave();
+                setTimeout(() => { if (!isUnloadingRef.current) onLeave(); }, 500);
               }
             }}
             style={{

@@ -53,7 +53,12 @@ export default function MeetingRoom() {
     if (!roomName) return;
     
     // Connect to the backend WebSocket server
-    const apiUrl = (import.meta as any).env.VITE_API_URL;
+    // Strip '/api' from the URL if it exists so Socket.io connects to the root namespace
+    let apiUrl = (import.meta as any).env.VITE_API_URL || '';
+    if (apiUrl.endsWith('/api')) {
+      apiUrl = apiUrl.replace(/\/api$/, '');
+    }
+    
     const socket: Socket = apiUrl
       ? io(apiUrl, { withCredentials: true })
       : io({ withCredentials: true }); // Automatically uses current host and Vite proxies /socket.io
