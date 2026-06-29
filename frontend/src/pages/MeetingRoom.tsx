@@ -21,6 +21,7 @@ export default function MeetingRoom() {
   
   // Post-meeting screen state
   const [hasLeft, setHasLeft] = useState(false);
+  const [isEnded, setIsEnded] = useState(false);
   const [skipPrejoin, setSkipPrejoin] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
 
@@ -68,8 +69,8 @@ export default function MeetingRoom() {
 
     // Listen for the termination event
     socket.on('meeting-ended', () => {
-      // If the host ends the meeting, completely skip any rejoin screen and go straight to dashboard
-      navigate('/dashboard');
+      setIsEnded(true);
+      setTimeLeft(30);
     });
 
     // Listen for host joining to automatically let guests in
@@ -87,11 +88,12 @@ export default function MeetingRoom() {
     };
   }, [roomName]);
 
-  // Timer for post-meeting screen
+  // Timer for post-meeting and ended screens
   useEffect(() => {
-    if (!hasLeft) return;
+    const showEndedScreen = isEnded || roomData?.status === 'completed';
+    if (!hasLeft && !showEndedScreen) return;
     
-    if (timeLeft === 0) {
+    if (timeLeft <= 0) {
       navigate('/dashboard');
       return;
     }
@@ -101,7 +103,7 @@ export default function MeetingRoom() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [hasLeft, timeLeft, navigate]);
+  }, [hasLeft, isEnded, roomData?.status, timeLeft, navigate]);
 
   // When host joins, set hostJoined to true
   useEffect(() => {
@@ -180,12 +182,26 @@ export default function MeetingRoom() {
     );
   }
 
-  if (roomData.status === 'completed') {
+  const showEndedScreen = isEnded || roomData.status === 'completed';
+  if (showEndedScreen) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', textAlign: 'center' }}>
-        <h2 style={{ color: 'var(--primary)', marginBottom: 8 }}>Meeting Ended</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>This meeting has already concluded.</p>
-        <button className="btn btn-primary" onClick={() => navigate('/')}>Return to Dashboard</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+          <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
+        </div>
+        <h2 style={{ color: 'var(--error)', marginBottom: 8 }}>Meeting Ended</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 32 }}>
+          This meeting has been concluded by the host.<br/>
+          Returning to dashboard in <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{timeLeft}</span> seconds...
+        </p>
+        <button 
+          className="btn btn-primary" 
+          onClick={() => navigate('/dashboard')}
+        >
+          Return to Home
+        </button>
       </div>
     );
   }
@@ -242,7 +258,8 @@ export default function MeetingRoom() {
       } catch (err) {
         console.error('Failed to update meeting status', err);
       }
-      navigate('/dashboard');
+      setIsEnded(true);
+      setTimeLeft(30);
     }
   };
 
