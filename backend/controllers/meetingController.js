@@ -158,7 +158,13 @@ export const updateMeeting = async (req, res) => {
     if (duration !== undefined) meeting.duration = duration;
     if (startTime !== undefined) meeting.startTime = new Date(startTime);
     if (endTime !== undefined) meeting.endTime = new Date(endTime);
-    if (hostJoined !== undefined) meeting.hostJoined = hostJoined;
+    
+    if (hostJoined !== undefined) {
+      meeting.hostJoined = hostJoined;
+      if (hostJoined === true) {
+        io.to(meeting.roomName).emit('host-joined');
+      }
+    }
 
     await meeting.save();
 

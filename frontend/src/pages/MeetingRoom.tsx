@@ -53,9 +53,10 @@ export default function MeetingRoom() {
     if (!roomName) return;
     
     // Connect to the backend WebSocket server
-    const socket: Socket = io((import.meta as any).env.VITE_API_URL || 'http://localhost:5000', {
-      withCredentials: true,
-    });
+    const apiUrl = (import.meta as any).env.VITE_API_URL;
+    const socket: Socket = apiUrl
+      ? io(apiUrl, { withCredentials: true })
+      : io({ withCredentials: true }); // Automatically uses current host and Vite proxies /socket.io
 
     // Join the specific meeting room channel
     socket.emit('join-room', roomName);
@@ -64,6 +65,16 @@ export default function MeetingRoom() {
     socket.on('meeting-ended', () => {
       // If the host ends the meeting, completely skip any rejoin screen and go straight to dashboard
       navigate('/dashboard');
+    });
+
+    // Listen for host joining to automatically let guests in
+    socket.on('host-joined', () => {
+      setRoomData((prev: any) => {
+        if (prev) {
+          return { ...prev, hostJoined: true };
+        }
+        return prev;
+      });
     });
 
     return () => {
