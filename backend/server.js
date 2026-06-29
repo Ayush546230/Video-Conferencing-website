@@ -24,10 +24,19 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
+const getCorsOrigin = () => {
+  if (process.env.NODE_ENV === 'development') return true; // Allow all in dev
+  if (process.env.FRONTEND_URL) {
+    // Handle potential comma-separated URLs and remove trailing slashes which break strict CORS
+    return process.env.FRONTEND_URL.split(',').map(url => url.trim().replace(/\/$/, ''));
+  }
+  return 'http://localhost:3000';
+};
+
 // ─── Socket.io Initialization ──────────────────────────────
 export const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: getCorsOrigin(),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
@@ -60,7 +69,7 @@ app.use(
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: getCorsOrigin(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
