@@ -244,21 +244,22 @@ export default function MeetingRoom() {
     setTimeLeft(30); // reset timer
   };
 
-  const handleEndForAll = async () => {
+  const handleEndForAll = () => {
     if (isHost && roomData) {
       const durationMin = Math.round((Date.now() - joinTime.current) / 60000);
-      try {
-        await API.put(`/meetings/${roomData.id}`, { status: 'completed', duration: durationMin });
-        
-        // Also update local context state so history is immediately accurate
-        const meeting = meetings.find(m => m.roomName === roomName);
-        if (meeting) {
-          addToHistory({ ...meeting, duration: durationMin });
-        }
-      } catch (err) {
-        console.error('Failed to update meeting status', err);
-      }
+      
+      // Navigate instantly to avoid seeing the rejoin screen
       navigate('/dashboard');
+
+      // Update backend in the background
+      API.put(`/meetings/${roomData.id}`, { status: 'completed', duration: durationMin })
+        .then(() => {
+          const meeting = meetings.find(m => m.roomName === roomName);
+          if (meeting) {
+            addToHistory({ ...meeting, duration: durationMin });
+          }
+        })
+        .catch(err => console.error('Failed to update meeting status', err));
     }
   };
 
