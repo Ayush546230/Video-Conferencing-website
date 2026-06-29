@@ -258,8 +258,7 @@ export default function MeetingRoom() {
       } catch (err) {
         console.error('Failed to update meeting status', err);
       }
-      setIsEnded(true);
-      setTimeLeft(30);
+      navigate('/dashboard');
     }
   };
 
