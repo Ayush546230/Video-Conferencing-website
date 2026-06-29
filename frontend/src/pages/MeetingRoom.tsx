@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { io, Socket } from 'socket.io-client';
 import { useMeetings } from '../context/MeetingContext';
 import PreJoinScreen from '../components/meeting/PreJoinScreen';
 import JitsiRoom from '../components/meeting/JitsiRoom';
 import { API, useAuth } from '../context/AuthContext';
+
+// Initialize socket outside component to avoid reconnects on every render if possible,
+// but since we need it connected dynamically, we'll instantiate it inside or use a ref.
 
 export default function MeetingRoom() {
   const { roomName } = useParams<{ roomName: string }>();
@@ -14,6 +18,11 @@ export default function MeetingRoom() {
   const [roomData, setRoomData] = useState<any>(null);
   const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [error, setError] = useState('');
+  
+  // Post-meeting screen state
+  const [hasLeft, setHasLeft] = useState(false);
+  const [skipPrejoin, setSkipPrejoin] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -37,16 +46,46 @@ export default function MeetingRoom() {
     };
 
     fetchRoom();
+  }, [roomName]);
 
-    // Poll every 3 seconds if host hasn't joined
-    interval = setInterval(() => {
-      if (!roomData?.hostJoined && roomData?.status !== 'completed' && roomData?.status !== 'cancelled') {
-        fetchRoom();
-      }
-    }, 3000);
+  // WebSocket Connection for Real-Time Updates
+  useEffect(() => {
+    if (!roomName) return;
+    
+    // Connect to the backend WebSocket server
+    const socket: Socket = io((import.meta as any).env.VITE_API_URL || 'http://localhost:5000', {
+      withCredentials: true,
+    });
 
-    return () => clearInterval(interval);
-  }, [roomName, roomData?.hostJoined, roomData?.status]);
+    // Join the specific meeting room channel
+    socket.emit('join-room', roomName);
+
+    // Listen for the termination event
+    socket.on('meeting-ended', () => {
+      // If the host ends the meeting, completely skip any rejoin screen and go straight to dashboard
+      navigate('/dashboard');
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [roomName]);
+
+  // Timer for post-meeting screen
+  useEffect(() => {
+    if (!hasLeft) return;
+    
+    if (timeLeft === 0) {
+      navigate('/dashboard');
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [hasLeft, timeLeft, navigate]);
 
   // When host joins, set hostJoined to true
   useEffect(() => {
@@ -169,15 +208,59 @@ export default function MeetingRoom() {
   }
 
   const handleLeave = () => {
-    if (isHost) {
-      const durationMin = Math.round((Date.now() - joinTime.current) / 60000);
-      const meeting = meetings.find(m => m.roomName === roomName);
-      if (meeting) {
-        addToHistory({ ...meeting, duration: durationMin });
-      }
-    }
-    navigate('/dashboard');
+    setHasLeft(true);
+    setTimeLeft(30); // reset timer
   };
+
+  const handleEndForAll = async () => {
+    if (isHost && roomData) {
+      const durationMin = Math.round((Date.now() - joinTime.current) / 60000);
+      try {
+        await API.put(`/meetings/${roomData.id}`, { status: 'completed', duration: durationMin });
+        
+        // Also update local context state so history is immediately accurate
+        const meeting = meetings.find(m => m.roomName === roomName);
+        if (meeting) {
+          addToHistory({ ...meeting, duration: durationMin });
+        }
+      } catch (err) {
+        console.error('Failed to update meeting status', err);
+      }
+      navigate('/dashboard');
+    }
+  };
+
+  if (hasLeft) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+          <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
+        </div>
+        <h2 style={{ color: 'var(--text)', marginBottom: 8 }}>You left the meeting</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: 32 }}>Returning to dashboard in <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{timeLeft}</span> seconds...</p>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => navigate('/dashboard')}
+          >
+            Go to Home
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => {
+              setHasLeft(false);
+              setSkipPrejoin(true);
+              setTimeLeft(30);
+            }}
+          >
+            Rejoin Meeting
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="meeting-room">
@@ -185,11 +268,13 @@ export default function MeetingRoom() {
         roomName={roomName}
         displayName={userProfile?.displayName || 'Guest'}
         onLeave={handleLeave}
+        onEndForAll={handleEndForAll}
         audioMuted={!userPreferences?.micDefault}
         videoMuted={!userPreferences?.cameraDefault}
         isHost={isHost}
         isPrivate={roomData.isPrivate}
         jwt={jwtToken || undefined}
+        skipPrejoin={skipPrejoin}
       />
     </div>
   );

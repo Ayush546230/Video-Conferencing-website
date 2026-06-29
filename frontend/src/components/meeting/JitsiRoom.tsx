@@ -5,11 +5,13 @@ interface Props {
   roomName: string;
   displayName: string;
   onLeave: () => void;
+  onEndForAll?: () => void;
   audioMuted?: boolean;
   videoMuted?: boolean;
   isHost?: boolean;
   isPrivate?: boolean;
   jwt?: string;
+  skipPrejoin?: boolean;
 }
 
 const CustomSpinner = () => (
@@ -38,10 +40,14 @@ const CustomSpinner = () => (
   </div>
 );
 
-export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted = true, videoMuted = false, isHost = false, isPrivate = false, jwt }: Props) {
+export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll, audioMuted = true, videoMuted = false, isHost = false, isPrivate = false, jwt, skipPrejoin = false }: Props) {
   const [isReady, setIsReady] = React.useState(false);
   const [shouldMount, setShouldMount] = React.useState(false);
+  const [showEndCallMenu, setShowEndCallMenu] = React.useState(false);
   const isUnloadingRef = React.useRef(false);
+  const externalApiRef = React.useRef<any>(null);
+  const participantsRef = React.useRef<Set<string>>(new Set());
+  const hasJoinedMeetingRef = React.useRef(false);
 
   React.useEffect(() => {
     const handleUnload = () => {
@@ -111,8 +117,8 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
           configOverwrite={{
             startWithAudioMuted: audioMuted,
             startWithVideoMuted: videoMuted,
-            prejoinPageEnabled: true,
-            prejoinConfig: { enabled: true },
+            prejoinPageEnabled: !skipPrejoin,
+            prejoinConfig: { enabled: !skipPrejoin },
             disableModeratorIndicator: true,
             enableInsecureRoomNameWarning: false,
             hideConferenceSubject: false,
@@ -127,7 +133,16 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
               'microphone', 'camera', 'desktop', 'chat',
               'raisehand', 'participants-pane', 'tileview',
               'settings', 'fullscreen', 'hangup',
-            ]
+            ],
+            // Intercept hangup for host
+            ...(isHost ? {
+              buttonsWithNotifyClick: [
+                {
+                  key: 'hangup',
+                  preventExecution: true
+                }
+              ]
+            } : {})
           }}
           interfaceConfigOverwrite={{
             SHOW_JITSI_WATERMARK: false,
@@ -148,12 +163,15 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
             iframeRef.style.width = '100%';
           }}
           onApiReady={(externalApi: any) => {
+            externalApiRef.current = externalApi;
+            
             // Hide our custom spinner shortly after the API is ready so the user can see the prejoin screen
             setTimeout(() => {
               setIsReady(true);
             }, 800);
 
             externalApi.addListener('videoConferenceJoined', () => {
+              hasJoinedMeetingRef.current = true;
               if (isHost && isPrivate) {
                 externalApi.executeCommand('toggleLobby', true);
               }
@@ -161,6 +179,28 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
             externalApi.addListener('videoConferenceLeft', () => {
               if (!isUnloadingRef.current) {
                 onLeave();
+              }
+            });
+            externalApi.addListener('toolbarButtonClicked', ({ key }: any) => {
+              if (key === 'hangup' && isHost) {
+                if (hasJoinedMeetingRef.current) {
+                  setShowEndCallMenu(prev => !prev);
+                } else {
+                  // If host hangs up on prejoin screen, just leave directly
+                  onLeave();
+                }
+              }
+            });
+
+            // Track participants to manually kick them if needed (no longer used for aggressive kicking, but kept for future use)
+            externalApi.addListener('participantJoined', (participant: any) => {
+              if (participant && participant.id) {
+                participantsRef.current.add(participant.id);
+              }
+            });
+            externalApi.addListener('participantLeft', (participant: any) => {
+              if (participant && participant.id) {
+                participantsRef.current.delete(participant.id);
               }
             });
           }}
@@ -191,6 +231,117 @@ export default function JitsiRoom({ roomName, displayName, onLeave, audioMuted =
           />
         </div>
       )}
+
+      {/* Host End Call Menu */}
+      {showEndCallMenu && isHost && (
+        <div style={{
+          position: 'absolute',
+          bottom: '90px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(26, 26, 46, 0.95)',
+          backdropFilter: 'blur(10px)',
+          padding: '16px',
+          borderRadius: '16px',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex',
+          gap: '12px',
+          zIndex: 1000,
+          animation: 'slideUp 0.2s ease-out'
+        }}>
+          <button 
+            onClick={() => {
+              setShowEndCallMenu(false);
+              onLeave(); // This unmounts the component to let host leave without ending meeting
+            }}
+            style={{
+              padding: '12px 20px',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 500,
+              fontSize: '15px',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            Leave
+          </button>
+          <button 
+            onClick={() => {
+              setShowEndCallMenu(false);
+              if (onEndForAll) {
+                onEndForAll(); // Tell parent to mark meeting as completed
+              } else if (externalApiRef.current) {
+                // Fallback attempt
+                externalApiRef.current.executeCommand('endConference');
+                onLeave();
+              } else {
+                onLeave();
+              }
+            }}
+            style={{
+              padding: '12px 20px',
+              background: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontWeight: 500,
+              fontSize: '15px',
+              transition: 'all 0.2s',
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#dc2626')}
+            onMouseOut={(e) => (e.currentTarget.style.background = '#ef4444')}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            End for all
+          </button>
+          <button
+            onClick={() => setShowEndCallMenu(false)}
+            style={{
+              position: 'absolute',
+              top: '-10px',
+              right: '-10px',
+              background: '#333',
+              color: 'white',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '50%',
+              width: '24px',
+              height: '24px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px'
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
+            onMouseOut={(e) => (e.currentTarget.style.background = '#333')}
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <style>
+        {`
+          @keyframes slideUp {
+            from { opacity: 0; transform: translate(-50%, 10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+          }
+        `}
+      </style>
     </div>
   );
 }

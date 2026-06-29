@@ -52,6 +52,7 @@ export const generateJaaSToken = (user, roomName, isModerator = false) => {
         recording: isModerator,
         transcription: isModerator,
         'outbound-call': isModerator,
+        'end-conference': isModerator,
       },
     },
   };

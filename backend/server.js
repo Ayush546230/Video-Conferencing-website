@@ -8,6 +8,8 @@ import MongoStore from 'connect-mongo';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import http from 'http';
+import { Server } from 'socket.io';
 
 import authRoutes from './routes/auth.js';
 import passkeyRoutes from './routes/passkeys.js';
@@ -20,6 +22,23 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const server = http.createServer(app);
+
+// ─── Socket.io Initialization ──────────────────────────────
+export const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  },
+});
+
+io.on('connection', (socket) => {
+  // Client joins a specific meeting room
+  socket.on('join-room', (roomName) => {
+    socket.join(roomName);
+  });
+});
 
 // ─── Connect MongoDB ───────────────────────────────────────
 mongoose
@@ -118,7 +137,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   startReminderScheduler();
 });

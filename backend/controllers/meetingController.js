@@ -1,6 +1,7 @@
 import Meeting from '../models/Meeting.js';
 import { sendMeetingInvite, sendMeetingCancellation } from '../services/emailService.js';
 import { generateJaaSToken } from '../services/jaasService.js';
+import { io } from '../server.js';
 
 // ─── Helper: Generate room name ─────────────────────────────
 function generateRoomName() {
@@ -160,6 +161,11 @@ export const updateMeeting = async (req, res) => {
     if (hostJoined !== undefined) meeting.hostJoined = hostJoined;
 
     await meeting.save();
+
+    // If meeting is marked as completed, notify all clients in the room via WebSocket
+    if (status === 'completed') {
+      io.to(meeting.roomName).emit('meeting-ended');
+    }
 
     // Send cancellation emails
     if (isCancelling && meeting.participants && meeting.participants.length > 0) {
