@@ -491,12 +491,10 @@ function PushLoginPanel({ onBeforeLogin, onAfterLogin }) {
         clearInterval(countdownRef.current);
         socket.disconnect();
         completePushLogin(data.token, data.user);
-        setStep('approved');
-        setTimeout(() => {
-          // Tell useEffect we are done with popups so it can redirect if needed
-          if (onAfterLogin) onAfterLogin();
-          navigate(returnUrl);
-        }, 1200);
+        
+        // Navigate instantly without delay
+        if (onAfterLogin) onAfterLogin();
+        navigate(returnUrl);
       } else if (data.status === 'denied') {
         clearInterval(countdownRef.current);
         socket.disconnect();
