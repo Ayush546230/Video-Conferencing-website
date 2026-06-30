@@ -116,6 +116,7 @@ export const createMeeting = async (req, res) => {
         status: 'scheduled',
         isPrivate: isPrivate || false,
         notification: notification || { amount: 30, unit: 'minutes before', type: 'As Notification' },
+        hostJoined: type === 'instant' ? true : false,
       });
     }
 
