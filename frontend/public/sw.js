@@ -2,7 +2,7 @@
 // Handles push notifications for "Login with Single Click" feature
 // Allow/Deny actions are handled DIRECTLY from the notification popup
 
-const CACHE_NAME = 'authcraft-sw-v2';
+const CACHE_NAME = 'authcraft-sw-v3';
 
 // ─── Install — Force immediate update ──────────────────────
 self.addEventListener('install', (event) => {
@@ -60,9 +60,11 @@ self.addEventListener('notificationclick', (event) => {
 
   if (action === 'approve' || action === 'deny') {
     // User tapped Allow/Deny directly on the notification
-    // Send response to backend WITHOUT opening any webpage
+    const apiUrl = data.apiUrl || '';
+    const endpoint = apiUrl ? `${apiUrl}/api/push-auth/respond` : '/api/push-auth/respond';
+
     event.waitUntil(
-      fetch('/api/push-auth/respond', {
+      fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

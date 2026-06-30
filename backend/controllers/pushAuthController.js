@@ -152,6 +152,7 @@ export const initiateLogin = async (req, res) => {
     await loginRequest.save();
 
     // Send push notification
+    const backendUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL || 'http://localhost:5000';
     const pushPayload = JSON.stringify({
       title: 'Login Request',
       body: `someone wants to login into system`,
@@ -161,6 +162,7 @@ export const initiateLogin = async (req, res) => {
         requestId: loginRequest._id.toString(),
         token: loginRequest.token,
         url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/push-approve?requestId=${loginRequest._id}&token=${loginRequest.token}`,
+        apiUrl: backendUrl
       },
       actions: [
         { action: 'approve', title: 'Allow' },
