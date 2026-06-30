@@ -323,6 +323,16 @@ export const respondToRequest = async (req, res) => {
       }
     }
 
+    // Emit socket event to notify the polling client instantly
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`push-${requestId}`).emit('push-login-response', {
+        status: loginRequest.status,
+        token: jwtToken,
+        user: userResponse
+      });
+    }
+
     res.json({
       success: true,
       status: loginRequest.status,
@@ -337,3 +347,4 @@ export const respondToRequest = async (req, res) => {
     res.status(500).json({ error: 'Failed to process response' });
   }
 };
+

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { io } from 'socket.io-client';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -441,7 +442,7 @@ const urlBase64ToUint8Array = (base64String) => {
 
 // ─── Push Login Panel ──────────────────────────────────────
 function PushLoginPanel() {
-  const { initiatePushLogin, checkPushLoginStatus } = useAuth();
+  const { initiatePushLogin, completePushLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const returnUrl = new URLSearchParams(location.search).get('returnUrl') || '/dashboard';
@@ -449,24 +450,24 @@ function PushLoginPanel() {
   const [error, setError] = useState('');
   const [requestId, setRequestId] = useState(null);
   const [countdown, setCountdown] = useState(120);
-  const pollRef = useRef(null);
+  const pollRef = useRef(null); // Will now store socket instance
   const countdownRef = useRef(null);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
+      if (pollRef.current) pollRef.current.disconnect();
       if (countdownRef.current) clearInterval(countdownRef.current);
     };
   }, []);
 
-  const startPolling = (reqId) => {
+  const startSocketListening = (reqId) => {
     setCountdown(120);
     countdownRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(countdownRef.current);
-          clearInterval(pollRef.current);
+          if (pollRef.current) pollRef.current.disconnect();
           setStep('expired');
           return 0;
         }
@@ -474,25 +475,27 @@ function PushLoginPanel() {
       });
     }, 1000);
 
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await checkPushLoginStatus(reqId);
-        if (res.status === 'approved') {
-          clearInterval(pollRef.current);
-          clearInterval(countdownRef.current);
-          setStep('approved');
-          setTimeout(() => navigate(returnUrl), 1200);
-        } else if (res.status === 'denied') {
-          clearInterval(pollRef.current);
-          clearInterval(countdownRef.current);
-          setStep('denied');
-        } else if (res.status === 'expired') {
-          clearInterval(pollRef.current);
-          clearInterval(countdownRef.current);
-          setStep('expired');
-        }
-      } catch { /* continue polling */ }
-    }, 2000);
+    let apiUrl = import.meta.env.VITE_API_URL || '';
+    if (apiUrl.endsWith('/api')) apiUrl = apiUrl.replace(/\/api$/, '');
+    
+    const socket = apiUrl ? io(apiUrl, { withCredentials: true }) : io({ withCredentials: true });
+    pollRef.current = socket;
+
+    socket.emit('join-push-room', reqId);
+
+    socket.on('push-login-response', (data) => {
+      if (data.status === 'approved') {
+        clearInterval(countdownRef.current);
+        socket.disconnect();
+        completePushLogin(data.token, data.user);
+        setStep('approved');
+        setTimeout(() => navigate(returnUrl), 1200);
+      } else if (data.status === 'denied') {
+        clearInterval(countdownRef.current);
+        socket.disconnect();
+        setStep('denied');
+      }
+    });
   };
 
   const handleSingleClickLogin = async () => {
@@ -533,7 +536,7 @@ function PushLoginPanel() {
       const res = await initiatePushLogin({ subscription: subscription.toJSON() });
       setRequestId(res.requestId);
       setStep('waiting');
-      startPolling(res.requestId);
+      startSocketListening(res.requestId);
     } catch (err) {
       console.error('Error during push login:', err);
       let errMsg = err?.response?.data?.error || err?.message || 'Failed to trigger push login.';
@@ -547,7 +550,7 @@ function PushLoginPanel() {
   };
 
   const handleReset = () => {
-    if (pollRef.current) clearInterval(pollRef.current);
+    if (pollRef.current) pollRef.current.disconnect();
     if (countdownRef.current) clearInterval(countdownRef.current);
     setStep('idle');
     setError('');

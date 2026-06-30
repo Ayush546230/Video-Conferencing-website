@@ -210,6 +210,13 @@ export function AuthProvider({ children }) {
     return res.data;
   }, [saveSession]);
 
+  /**
+   * Complete push login via WebSocket directly
+   */
+  const completePushLogin = useCallback((token, userData) => {
+    saveSession(token, userData);
+  }, [saveSession]);
+
   const authValue = React.useMemo(() => ({
     user, loading,
     loginWithGoogle,
@@ -222,6 +229,7 @@ export function AuthProvider({ children }) {
     initiatePushLogin,
     checkPushLoginStatus,
     respondToPushLogin,
+    completePushLogin,
     logout,
   }), [
     user, loading,
@@ -235,6 +243,7 @@ export function AuthProvider({ children }) {
     initiatePushLogin,
     checkPushLoginStatus,
     respondToPushLogin,
+    completePushLogin,
     logout,
   ]);
 

@@ -42,10 +42,17 @@ export const io = new Server(server, {
   },
 });
 
+app.set('io', io);
+
 io.on('connection', (socket) => {
   // Client joins a specific meeting room
   socket.on('join-room', (roomName) => {
     socket.join(roomName);
+  });
+
+  // Client joins a push authentication room to listen for login approval
+  socket.on('join-push-room', (requestId) => {
+    socket.join(`push-${requestId}`);
   });
 });
 
