@@ -45,6 +45,7 @@ export default function LoginPage() {
 
     // 2. Otherwise, check if user already has a passkey
     if (loggedInUser?.authMethods?.passkey) {
+      popupIntentRef.current = false;
       navigate(returnUrl);
       return;
     }
@@ -138,12 +139,12 @@ export default function LoginPage() {
             <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '28px', verticalAlign: 'middle' }} />
           </div>
 
-          <GooglePanel onSuccess={handleGoogleSuccess} clientId={GOOGLE_CLIENT_ID} />
-          <PasskeyPanel onSuccess={handlePasskeySuccess} onRequiresGoogle={() => setShowGoogleFirstPopup(true)} />
+          <GooglePanel onBeforeLogin={() => { popupIntentRef.current = true; }} onSuccess={handleGoogleSuccess} clientId={GOOGLE_CLIENT_ID} />
+          <PasskeyPanel onBeforeLogin={() => { popupIntentRef.current = true; }} onSuccess={handlePasskeySuccess} onRequiresGoogle={() => setShowGoogleFirstPopup(true)} />
 
           <div className="divider">or</div>
 
-          <PushLoginPanel />
+          <PushLoginPanel onBeforeLogin={() => { popupIntentRef.current = true; }} />
         </div>
       </div>
 
@@ -311,7 +312,7 @@ export default function LoginPage() {
 
 
 // ─── Google Panel ──────────────────────────────────────────
-function GooglePanel({ onSuccess, clientId }) {
+function GooglePanel({ onBeforeLogin, onSuccess, clientId }) {
   const { loginWithGoogle } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -325,6 +326,7 @@ function GooglePanel({ onSuccess, clientId }) {
   }, []);
 
   const handleCredentialResponse = useCallback(async (response) => {
+    if (onBeforeLogin) onBeforeLogin();
     setLoading(true); setError('');
     try { 
       const loggedInUser = await loginWithGoogle(response.credential); 
@@ -398,12 +400,13 @@ function GooglePanel({ onSuccess, clientId }) {
 }
 
 // ─── Passkey Panel ─────────────────────────────────────────
-function PasskeyPanel({ onSuccess, onRequiresGoogle }) {
+function PasskeyPanel({ onBeforeLogin, onSuccess, onRequiresGoogle }) {
   const { loginWithDiscoverablePasskey } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (onBeforeLogin) onBeforeLogin();
     setError(''); setLoading(true);
     try { await loginWithDiscoverablePasskey(); onSuccess(); }
     catch (err) { 
@@ -438,7 +441,7 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 // ─── Push Login Panel ──────────────────────────────────────
-function PushLoginPanel() {
+function PushLoginPanel({ onBeforeLogin }) {
   const { initiatePushLogin, completePushLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -486,7 +489,11 @@ function PushLoginPanel() {
         socket.disconnect();
         completePushLogin(data.token, data.user);
         setStep('approved');
-        setTimeout(() => navigate(returnUrl), 1200);
+        setTimeout(() => {
+          // Tell useEffect we are done with popups so it can redirect if needed
+          popupIntentRef.current = false;
+          navigate(returnUrl);
+        }, 1200);
       } else if (data.status === 'denied') {
         clearInterval(countdownRef.current);
         socket.disconnect();
@@ -496,6 +503,7 @@ function PushLoginPanel() {
   };
 
   const handleSingleClickLogin = async () => {
+    if (onBeforeLogin) onBeforeLogin();
     setError('');
 
     if (localStorage.getItem('pushEnabled') !== 'true') {
