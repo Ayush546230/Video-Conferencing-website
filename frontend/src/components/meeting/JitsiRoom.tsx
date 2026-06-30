@@ -234,116 +234,145 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
 
       {/* Host End Call Menu */}
       {showEndCallMenu && isHost && (
-        <div style={{
-          position: 'absolute',
-          bottom: '90px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(26, 26, 46, 0.95)',
-          backdropFilter: 'blur(10px)',
-          padding: '16px',
-          borderRadius: '16px',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex',
-          gap: '12px',
-          zIndex: 1000,
-          animation: 'slideUp 0.2s ease-out'
-        }}>
-          <button 
-            onClick={() => {
-              setShowEndCallMenu(false);
-              if (externalApiRef.current) {
-                externalApiRef.current.executeCommand('hangup');
-              }
-              // Wait for videoConferenceLeft event to trigger onLeave, but add fallback
-              setTimeout(() => {
-                if (!isUnloadingRef.current) onLeave();
-              }, 500);
-            }}
-            style={{
-              padding: '12px 20px',
-              background: 'rgba(255, 255, 255, 0.1)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontWeight: 500,
-              fontSize: '15px',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)')}
-            onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            Leave
-          </button>
-          <button 
-            onClick={() => {
-              setShowEndCallMenu(false);
-              if (externalApiRef.current) {
-                externalApiRef.current.executeCommand('hangup');
-              }
-              if (onEndForAll) {
-                onEndForAll(); // Tell parent to mark meeting as completed
-              } else {
-                setTimeout(() => { if (!isUnloadingRef.current) onLeave(); }, 500);
-              }
-            }}
-            style={{
-              padding: '12px 20px',
-              background: '#ef4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontWeight: 500,
-              fontSize: '15px',
-              transition: 'all 0.2s',
-              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#dc2626')}
-            onMouseOut={(e) => (e.currentTarget.style.background = '#ef4444')}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            End for all
-          </button>
-          <button
-            onClick={() => setShowEndCallMenu(false)}
+        <>
+          {/* Backdrop */}
+          <div 
             style={{
               position: 'absolute',
-              top: '-10px',
-              right: '-10px',
-              background: '#333',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '50%',
-              width: '24px',
-              height: '24px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px'
+              top: 0, left: 0, right: 0, bottom: 0,
+              background: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 999,
+              animation: 'fadeIn 0.2s ease-out'
             }}
-            onMouseOver={(e) => (e.currentTarget.style.background = '#444')}
-            onMouseOut={(e) => (e.currentTarget.style.background = '#333')}
-          >
-            ×
-          </button>
-        </div>
+            onClick={() => setShowEndCallMenu(false)}
+          />
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'var(--bg, #1a1a2e)',
+            padding: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 12px 48px rgba(0,0,0,0.6)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            zIndex: 1000,
+            animation: 'scaleUp 0.2s ease-out',
+            width: '90%',
+            maxWidth: '320px',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ color: 'var(--text, #fff)', margin: 0, fontSize: '1.25rem', fontWeight: 600 }}>Leave Meeting</h3>
+            <p style={{ color: 'var(--text-secondary, #aaa)', margin: '0 0 8px 0', fontSize: '0.9rem', lineHeight: 1.4 }}>
+              Do you want to just leave the meeting, or end it for everyone?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={() => {
+                  setShowEndCallMenu(false);
+                  if (externalApiRef.current) {
+                    externalApiRef.current.executeCommand('hangup');
+                  }
+                  setTimeout(() => {
+                    if (!isUnloadingRef.current) onLeave();
+                  }, 500);
+                }}
+                style={{
+                  padding: '12px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: 'var(--text, #fff)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: 500,
+                  fontSize: '15px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)')}
+                onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Just Leave
+              </button>
+              <button 
+                onClick={() => {
+                  setShowEndCallMenu(false);
+                  if (externalApiRef.current) {
+                    externalApiRef.current.executeCommand('hangup');
+                  }
+                  if (onEndForAll) {
+                    onEndForAll();
+                  } else {
+                    setTimeout(() => { if (!isUnloadingRef.current) onLeave(); }, 500);
+                  }
+                }}
+                style={{
+                  padding: '12px',
+                  background: '#ef4444',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  fontWeight: 500,
+                  fontSize: '15px',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)'
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = '#dc2626')}
+                onMouseOut={(e) => (e.currentTarget.style.background = '#ef4444')}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                End for all
+              </button>
+            </div>
+            <button
+              onClick={() => setShowEndCallMenu(false)}
+              style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'transparent',
+                color: 'var(--text-secondary, #aaa)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+                transition: 'color 0.2s'
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.color = 'var(--text, #fff)')}
+              onMouseOut={(e) => (e.currentTarget.style.color = 'var(--text-secondary, #aaa)')}
+            >
+              ×
+            </button>
+          </div>
+        </>
       )}
       <style>
         {`
-          @keyframes slideUp {
-            from { opacity: 0; transform: translate(-50%, 10px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes scaleUp {
+            from { opacity: 0; transform: translate(-50%, -45%) scale(0.95); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
           }
         `}
       </style>

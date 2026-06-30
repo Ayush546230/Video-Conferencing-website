@@ -296,7 +296,7 @@ export default function MeetingRoom() {
   }
 
   return (
-    <div className="meeting-room">
+    <div className="meeting-room" style={{ height: '100dvh', width: '100vw', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
       <JitsiRoom
         roomName={roomName}
         displayName={userProfile?.displayName || 'Guest'}
