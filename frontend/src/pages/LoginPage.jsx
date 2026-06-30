@@ -407,12 +407,9 @@ function PasskeyPanel({ onSuccess, onRequiresGoogle }) {
     setError(''); setLoading(true);
     try { await loginWithDiscoverablePasskey(); onSuccess(); }
     catch (err) { 
-      const msg = err?.message?.toLowerCase() || '';
-      if (err.name === 'NotAllowedError' || msg.includes('not allowed') || msg.includes('timed out') || msg.includes('cancelled')) {
-        setError('');
-      } else {
-        onRequiresGoogle(); 
-      }
+      // Treat any failure (including browser cancellation due to missing passkeys) 
+      // as a cue to sign in with Google first to set up passkeys.
+      onRequiresGoogle(); 
     }
     finally { setLoading(false); }
   };
