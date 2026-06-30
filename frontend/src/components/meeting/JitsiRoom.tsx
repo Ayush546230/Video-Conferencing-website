@@ -277,9 +277,12 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
                   if (externalApiRef.current) {
                     externalApiRef.current.executeCommand('hangup');
                   }
+                  // Wait for the videoConferenceLeft event to trigger onLeave naturally
+                  // This ensures the Jitsi iframe has time to cleanly disconnect from the server
+                  // Fallback to onLeave after 3 seconds if the event fails to fire
                   setTimeout(() => {
                     if (!isUnloadingRef.current) onLeave();
-                  }, 500);
+                  }, 3000);
                 }}
                 style={{
                   padding: '12px',
@@ -309,9 +312,9 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
                     externalApiRef.current.executeCommand('hangup');
                   }
                   if (onEndForAll) {
-                    onEndForAll();
+                    setTimeout(() => onEndForAll(), 500);
                   } else {
-                    setTimeout(() => { if (!isUnloadingRef.current) onLeave(); }, 500);
+                    setTimeout(() => { if (!isUnloadingRef.current) onLeave(); }, 3000);
                   }
                 }}
                 style={{
