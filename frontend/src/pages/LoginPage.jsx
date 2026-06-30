@@ -144,7 +144,10 @@ export default function LoginPage() {
 
           <div className="divider">or</div>
 
-          <PushLoginPanel onBeforeLogin={() => { popupIntentRef.current = true; }} />
+          <PushLoginPanel 
+            onBeforeLogin={() => { popupIntentRef.current = true; }} 
+            onAfterLogin={() => { popupIntentRef.current = false; }} 
+          />
         </div>
       </div>
 
@@ -441,7 +444,7 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 // ─── Push Login Panel ──────────────────────────────────────
-function PushLoginPanel({ onBeforeLogin }) {
+function PushLoginPanel({ onBeforeLogin, onAfterLogin }) {
   const { initiatePushLogin, completePushLogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -491,7 +494,7 @@ function PushLoginPanel({ onBeforeLogin }) {
         setStep('approved');
         setTimeout(() => {
           // Tell useEffect we are done with popups so it can redirect if needed
-          popupIntentRef.current = false;
+          if (onAfterLogin) onAfterLogin();
           navigate(returnUrl);
         }, 1200);
       } else if (data.status === 'denied') {
