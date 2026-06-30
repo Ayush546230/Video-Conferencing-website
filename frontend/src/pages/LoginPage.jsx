@@ -413,9 +413,13 @@ function PasskeyPanel({ onBeforeLogin, onSuccess, onRequiresGoogle }) {
     setError(''); setLoading(true);
     try { await loginWithDiscoverablePasskey(); onSuccess(); }
     catch (err) { 
-      // Treat any failure (including browser cancellation due to missing passkeys) 
-      // as a cue to sign in with Google first to set up passkeys.
-      onRequiresGoogle(); 
+      // If the user cancelled the passkey prompt (e.g., NotAllowedError), just show a message
+      if (err.name === 'NotAllowedError' || err.message?.toLowerCase().includes('cancel') || err.message?.toLowerCase().includes('abort')) {
+        setError('Cancelled. Need a passkey? Sign in with Google to create one.');
+      } else {
+        // Treat any other failure as a cue to sign in with Google first to set up passkeys.
+        onRequiresGoogle(); 
+      }
     }
     finally { setLoading(false); }
   };
