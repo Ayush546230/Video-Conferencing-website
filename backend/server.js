@@ -132,7 +132,7 @@ if (process.env.NODE_ENV !== 'test') {
 // ─── Routes ────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/passkeys', authLimiter, passkeyRoutes);
-app.use('/api/push-auth', pushAuthRoutes); // Removed authLimiter to allow /status polling (apiLimiter still applies)
+app.use('/api/push-auth', authLimiter, pushAuthRoutes);
 app.use('/api/meetings', meetingRoutes);
 app.use('/api/users', userRoutes);
 
