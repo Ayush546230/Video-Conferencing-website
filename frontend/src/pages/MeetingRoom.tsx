@@ -403,24 +403,12 @@ export default function MeetingRoom() {
         <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 1000, pointerEvents: 'none' }}>
           
           {/* Timer Badge (hidden when showing warning inline) */}
-          {showWarningPopup === null && !showExtendMenu && (
+          {showWarningPopup === null && (
             <div style={{
               background: consultationTimeLeft <= 60 ? 'var(--error, #ef4444)' : 'rgba(0,0,0,0.7)',
               color: 'white', padding: '8px 16px', borderRadius: '20px', fontSize: '1rem', fontWeight: 600,
               boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', pointerEvents: 'auto',
               border: '1px solid rgba(255,255,255,0.1)'
-            }}>
-              {formatTime(consultationTimeLeft)}
-            </div>
-          )}
-
-          {/* When showing extend menu, show timer below it so extend menu anchors correctly */}
-          {showExtendMenu && (
-            <div style={{
-              background: consultationTimeLeft <= 60 ? 'var(--error, #ef4444)' : 'rgba(0,0,0,0.7)',
-              color: 'white', padding: '8px 16px', borderRadius: '20px', fontSize: '1rem', fontWeight: 600,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', pointerEvents: 'auto',
-              border: '1px solid rgba(255,255,255,0.1)', display: 'inline-block'
             }}>
               {formatTime(consultationTimeLeft)}
             </div>
