@@ -38,6 +38,7 @@ interface ScheduleMeetingData {
   recurrence?: 'none' | 'daily' | 'weekly';
   recurrenceCount?: number;
   isPrivate?: boolean;
+  isConsultation?: boolean;
 }
 
 const MeetingContext = createContext<MeetingContextType | undefined>(undefined);
@@ -86,6 +87,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
         status: m.status,
         hostJoined: m.hostJoined,
         isPrivate: m.isPrivate,
+        isConsultation: m.isConsultation,
         createdAt: m.createdAt,
         duration: m.duration,
       }));
@@ -171,6 +173,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       status: m.status,
       hostJoined: m.hostJoined,
       isPrivate: m.isPrivate,
+      isConsultation: m.isConsultation,
       createdAt: m.createdAt,
       duration: m.duration,
     };
@@ -190,6 +193,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       timezone: data.timezone,
       notification: data.notification,
       isPrivate: data.isPrivate,
+      isConsultation: data.isConsultation,
     });
     const m = res.data.meeting;
     const meeting: Meeting = {
@@ -204,6 +208,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       status: m.status,
       hostJoined: m.hostJoined,
       isPrivate: m.isPrivate,
+      isConsultation: m.isConsultation,
       createdAt: m.createdAt,
       duration: m.duration,
     };

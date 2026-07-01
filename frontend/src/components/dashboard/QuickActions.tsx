@@ -6,7 +6,7 @@ import { copyToClipboard } from '../../utils/meetingUtils';
 import JoinMeetingInput from './JoinMeetingInput';
 
 interface Props {
-  onSchedule: () => void;
+  onSchedule: (isConsultation?: boolean) => void;
   onShowToast: (msg: string) => void;
 }
 
@@ -14,7 +14,7 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
   const navigate = useNavigate();
   const { createInstantMeeting, meetings } = useMeetings();
   const [linkBox, setLinkBox] = useState<{link: string, roomName: string} | null>(null);
-  const [hoveredCard, setHoveredCard] = useState<'new' | 'schedule' | null>(null);
+  const [hoveredCard, setHoveredCard] = useState<'new' | 'schedule' | 'consult' | null>(null);
 
   const handleInstant = async () => {
     try {
@@ -43,13 +43,13 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
           onMouseLeave={() => setHoveredCard(null)}
           style={{ 
             position: 'relative', 
-            background: hoveredCard === 'schedule' ? 'var(--bg-card)' : 'var(--primary)',
-            color: hoveredCard === 'schedule' ? 'var(--text)' : 'white',
-            borderColor: hoveredCard === 'schedule' ? 'var(--border)' : 'var(--primary)'
+            background: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'var(--bg-card)' : 'var(--primary)',
+            color: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'var(--text)' : 'white',
+            borderColor: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'var(--border)' : 'var(--primary)'
           }}
         >
-          <div className="quick-action-icon" style={{ background: hoveredCard === 'schedule' ? 'rgba(108,99,255,0.12)' : 'rgba(255,255,255,0.2)', color: hoveredCard === 'schedule' ? 'var(--primary)' : 'white' }}><Video size={22} /></div>
-          <div><h4>New Meeting</h4><p style={{ color: hoveredCard === 'schedule' ? 'var(--text-muted)' : 'rgba(255,255,255,0.8)' }}>Start instantly</p></div>
+          <div className="quick-action-icon" style={{ background: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'rgba(108,99,255,0.12)' : 'rgba(255,255,255,0.2)', color: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'var(--primary)' : 'white' }}><Video size={22} /></div>
+          <div><h4>New Meeting</h4><p style={{ color: (hoveredCard === 'schedule' || hoveredCard === 'consult') ? 'var(--text-muted)' : 'rgba(255,255,255,0.8)' }}>Start instantly</p></div>
           {linkBox && (
             <div className="meeting-link-box" onClick={(e) => e.stopPropagation()} style={{ top: '100%', left: 0, marginTop: '8px' }}>
               <p>Share this link to the people</p>
@@ -68,7 +68,7 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
         </div>
         <div 
           className="quick-action-card" 
-          onClick={onSchedule}
+          onClick={() => onSchedule()}
           onMouseEnter={() => setHoveredCard('schedule')}
           onMouseLeave={() => setHoveredCard(null)}
           style={{ 
@@ -79,6 +79,21 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
         >
           <div className="quick-action-icon" style={{ background: hoveredCard === 'schedule' ? 'rgba(255,255,255,0.2)' : 'rgba(0,200,83,0.12)', color: hoveredCard === 'schedule' ? 'white' : 'var(--accent-green)' }}><CalendarPlus size={22} /></div>
           <div><h4>Schedule</h4><p style={{ color: hoveredCard === 'schedule' ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)' }}>Plan ahead</p></div>
+        </div>
+
+        <div 
+          className="quick-action-card" 
+          onClick={() => onSchedule(true)}
+          onMouseEnter={() => setHoveredCard('consult')}
+          onMouseLeave={() => setHoveredCard(null)}
+          style={{ 
+            background: hoveredCard === 'consult' ? 'var(--primary)' : 'var(--bg-card)',
+            color: hoveredCard === 'consult' ? 'white' : 'var(--text)',
+            borderColor: hoveredCard === 'consult' ? 'var(--primary)' : 'var(--border)'
+          }}
+        >
+          <div className="quick-action-icon" style={{ background: hoveredCard === 'consult' ? 'rgba(255,255,255,0.2)' : 'rgba(239, 68, 68, 0.12)', color: hoveredCard === 'consult' ? 'white' : 'var(--error, #ef4444)' }}><Clock size={22} /></div>
+          <div><h4>Consultation</h4><p style={{ color: hoveredCard === 'consult' ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)' }}>Timed session</p></div>
         </div>
       </div>
     </div>

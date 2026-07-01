@@ -8,6 +8,7 @@ interface Props {
 
 export default function CustomDateTimePicker({ value, onChange }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCustomTime, setIsCustomTime] = useState(false);
   const [tempDate, setTempDate] = useState(new Date(value || Date.now()));
   const popupRef = useRef<HTMLDivElement>(null);
 
@@ -151,52 +152,79 @@ export default function CustomDateTimePicker({ value, onChange }: Props) {
           </div>
 
           {/* Time Selector */}
-          <div style={{ padding: '16px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)' }}>
-              <Clock size={16} />
-              <span style={{ fontSize: '0.85rem' }}>Time</span>
+          <div style={{ padding: '16px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)' }}>
+                <Clock size={16} />
+                <span style={{ fontSize: '0.85rem' }}>Time</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {isCustomTime ? (
+                  <>
+                    <input 
+                      type="number" min="1" max="12" value={currentHr12} 
+                      onChange={e => handleTimeChange('h', e.target.value)}
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none', width: '44px', textAlign: 'center' }}
+                    />
+                    <span>:</span>
+                    <input 
+                      type="number" min="0" max="59" value={parseInt(currentMin, 10)} 
+                      onChange={e => handleTimeChange('m', e.target.value)}
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none', width: '44px', textAlign: 'center' }}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <select 
+                      value={currentHr12} 
+                      onChange={e => handleTimeChange('h', e.target.value)}
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none' }}
+                    >
+                      {Array.from({ length: 12 }).map((_, i) => {
+                        const hr12 = i + 1;
+                        const hr24 = currentAmPm === 'PM' ? (hr12 === 12 ? 12 : hr12 + 12) : (hr12 === 12 ? 0 : hr12);
+                        const isToday = tempDate.toDateString() === new Date().toDateString();
+                        const currentHour = new Date().getHours();
+                        const disabled = isToday && hr24 < currentHour;
+                        return <option key={hr12} value={hr12} disabled={disabled}>{hr12}</option>;
+                      })}
+                    </select>
+                    <span>:</span>
+                    <select 
+                      value={currentMin} 
+                      onChange={e => handleTimeChange('m', e.target.value)}
+                      style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none' }}
+                    >
+                      {['00', '15', '30', '45'].map(m => {
+                        const min = parseInt(m, 10);
+                        const isToday = tempDate.toDateString() === new Date().toDateString();
+                        const hr24 = tempDate.getHours();
+                        const currentHour = new Date().getHours();
+                        const currentMinute = new Date().getMinutes();
+                        const disabled = isToday && hr24 === currentHour && min < currentMinute;
+                        return <option key={m} value={m} disabled={disabled}>{m}</option>;
+                      })}
+                    </select>
+                  </>
+                )}
+                <select 
+                  value={currentAmPm} 
+                  onChange={e => handleTimeChange('ampm', e.target.value)}
+                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none', marginLeft: 4 }}
+                >
+                  <option value="AM" disabled={tempDate.toDateString() === new Date().toDateString() && new Date().getHours() >= 12}>AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <select 
-                value={currentHr12} 
-                onChange={e => handleTimeChange('h', e.target.value)}
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none' }}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsCustomTime(!isCustomTime)} 
+                style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}
               >
-                {Array.from({ length: 12 }).map((_, i) => {
-                  const hr12 = i + 1;
-                  const hr24 = currentAmPm === 'PM' ? (hr12 === 12 ? 12 : hr12 + 12) : (hr12 === 12 ? 0 : hr12);
-                  const isToday = tempDate.toDateString() === new Date().toDateString();
-                  const currentHour = new Date().getHours();
-                  // Disable if the hour has already passed today
-                  const disabled = isToday && hr24 < currentHour;
-                  return <option key={hr12} value={hr12} disabled={disabled}>{hr12}</option>;
-                })}
-              </select>
-              <span>:</span>
-              <select 
-                value={currentMin} 
-                onChange={e => handleTimeChange('m', e.target.value)}
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none' }}
-              >
-                {['00', '15', '30', '45'].map(m => {
-                  const min = parseInt(m, 10);
-                  const isToday = tempDate.toDateString() === new Date().toDateString();
-                  const hr24 = tempDate.getHours();
-                  const currentHour = new Date().getHours();
-                  const currentMinute = new Date().getMinutes();
-                  // Disable if the time has already passed today
-                  const disabled = isToday && hr24 === currentHour && min < currentMinute;
-                  return <option key={m} value={m} disabled={disabled}>{m}</option>;
-                })}
-              </select>
-              <select 
-                value={currentAmPm} 
-                onChange={e => handleTimeChange('ampm', e.target.value)}
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 4, padding: '4px', color: 'var(--text)', outline: 'none', marginLeft: 4 }}
-              >
-                <option value="AM" disabled={tempDate.toDateString() === new Date().toDateString() && new Date().getHours() >= 12}>AM</option>
-                <option value="PM">PM</option>
-              </select>
+                {isCustomTime ? 'Use preset time' : 'Custom time...'}
+              </button>
             </div>
           </div>
 

@@ -521,7 +521,7 @@ textarea.form-input { resize: vertical; min-height: 80px; }
   .navbar-search { min-width: 180px; }
   .hero-left h1 { font-size: 1.75rem; }
   .meetings-grid { grid-template-columns: 1fr; }
-  .quick-actions { grid-template-columns: 1fr 1fr; }
+  .quick-actions { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto 40px auto; padding: 0 16px; }
   .form-row { grid-template-columns: 1fr; }
   .share-grid { grid-template-columns: 1fr 1fr; }
   .history-page, .settings-page { padding: 24px 16px; }

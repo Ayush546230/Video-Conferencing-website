@@ -44,6 +44,7 @@ const meetingSchema = new mongoose.Schema(
     reminderSent: { type: Boolean, default: false },
     hostJoined: { type: Boolean, default: false },
     isPrivate: { type: Boolean, default: false },
+    isConsultation: { type: Boolean, default: false },
   },
   {
     timestamps: true,

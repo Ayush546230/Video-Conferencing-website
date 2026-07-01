@@ -48,7 +48,9 @@ export const getMeetingByRoomName = async (req, res) => {
         status: meeting.status,
         hostJoined: meeting.hostJoined,
         isPrivate: meeting.isPrivate,
+        isConsultation: meeting.isConsultation,
         startTime: meeting.startTime,
+        endTime: meeting.endTime,
         userId: meeting.userId
       } 
     });
@@ -82,7 +84,7 @@ export const createMeeting = async (req, res) => {
   try {
     const {
       title, description, startTime, endTime, participants,
-      timezone, notification, type, recurrence, recurrenceCount, isPrivate
+      timezone, notification, type, recurrence, recurrenceCount, isPrivate, isConsultation
     } = req.body;
 
     const roomName = generateRoomName();
@@ -115,6 +117,7 @@ export const createMeeting = async (req, res) => {
         participants: participants || [],
         status: 'scheduled',
         isPrivate: isPrivate || false,
+        isConsultation: isConsultation || false,
         notification: notification || { amount: 30, unit: 'minutes before', type: 'As Notification' },
         hostJoined: type === 'instant' ? true : false,
       });
@@ -158,7 +161,12 @@ export const updateMeeting = async (req, res) => {
     if (status !== undefined) meeting.status = status;
     if (duration !== undefined) meeting.duration = duration;
     if (startTime !== undefined) meeting.startTime = new Date(startTime);
-    if (endTime !== undefined) meeting.endTime = new Date(endTime);
+    if (endTime !== undefined) {
+      meeting.endTime = new Date(endTime);
+      if (meeting.isConsultation) {
+        io.to(meeting.roomName).emit('consultation-extended', meeting.endTime);
+      }
+    }
     
     if (hostJoined !== undefined) {
       meeting.hostJoined = hostJoined;

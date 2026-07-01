@@ -18,13 +18,14 @@ type NotifType = 'As Notification' | 'As Email';
 interface NotifState { amount: number | string; unit: NotifUnit; type: NotifType; }
 
 interface Props {
+  initialIsConsultation?: boolean;
   onClose: () => void;
   onCreated: (meeting: Meeting) => void;
 }
 
-export default function ScheduleModal({ onClose, onCreated }: Props) {
+export default function ScheduleModal({ initialIsConsultation, onClose, onCreated }: Props) {
   const { scheduleMeeting } = useMeetings();
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(initialIsConsultation ? 'Consultation' : '');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState(getCurrentDateTime());
   const [endTime, setEndTime] = useState(getOneHourLaterDateTime());
@@ -33,6 +34,8 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
   const [recurrence, setRecurrence] = useState<'none' | 'daily' | 'weekly'>('none');
   const [recurrenceCount, setRecurrenceCount] = useState<number>(4);
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
+  const [isCustomDuration, setIsCustomDuration] = useState(false);
+  const [customDurationMins, setCustomDurationMins] = useState(60);
   
   const durationOptions = useMemo(() => {
     const start = new Date(startTime || Date.now());
@@ -64,13 +67,22 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
   }, [startTime]);
 
   useEffect(() => {
-    if (durationOptions.length > 0) {
+    if (durationOptions.length > 0 && !isCustomDuration) {
       const exists = durationOptions.find(o => o.value === endTime);
       if (!exists) {
         setEndTime(durationOptions[4]?.value || durationOptions[0].value);
       }
     }
-  }, [startTime, durationOptions]);
+  }, [startTime, durationOptions, isCustomDuration, endTime]);
+  
+  const handleCustomDurationChange = (h: number, m: number) => {
+    const totalMins = h * 60 + m;
+    setCustomDurationMins(totalMins);
+    const start = new Date(startTime || Date.now());
+    const end = new Date(start.getTime() + totalMins * 60000);
+    const tzOffset = end.getTimezoneOffset() * 60000;
+    setEndTime(new Date(end.getTime() - tzOffset).toISOString().slice(0, 16));
+  };
   
   const [timezone, setTimezone] = useState({ id: 'Asia/Kolkata', name: 'India Standard Time' });
   const [showTzDropdown, setShowTzDropdown] = useState(false);
@@ -157,6 +169,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
         recurrence,
         recurrenceCount: recurrence !== 'none' ? recurrenceCount : undefined,
         isPrivate,
+        isConsultation: initialIsConsultation,
       });
       onCreated(meeting);
       onClose();
@@ -169,7 +182,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Schedule Meeting</h2>
+          <h2>{initialIsConsultation ? 'Schedule Consultation' : 'Schedule Meeting'}</h2>
           <button className="icon-btn" onClick={onClose}><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -185,15 +198,38 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
               </div>
               <div className="form-group" style={{ position: 'relative' }} ref={durationRef}>
                 <label>Duration</label>
-                <div 
-                  className="form-input" 
-                  onClick={() => setShowDurationDropdown(!showDurationDropdown)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: 'var(--bg)' }}
-                >
-                  <span>{durationOptions.find(o => o.value === endTime)?.label || ''}</span>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                </div>
-                {showDurationDropdown && (
+                {isCustomDuration ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg)', padding: '6px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                      <input type="number" min="0" value={Math.floor(customDurationMins / 60)} onChange={e => handleCustomDurationChange(parseInt(e.target.value) || 0, customDurationMins % 60)} className="form-input" style={{ width: 48, padding: '4px 8px', textAlign: 'center' }} />
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>h</span>
+                      <input type="number" min="0" max="59" value={customDurationMins % 60} onChange={e => handleCustomDurationChange(Math.floor(customDurationMins / 60), parseInt(e.target.value) || 0)} className="form-input" style={{ width: 48, padding: '4px 8px', textAlign: 'center' }} />
+                      <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>m</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button type="button" onClick={() => setIsCustomDuration(false)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}>
+                        Use preset duration
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <div 
+                      className="form-input" 
+                      onClick={() => setShowDurationDropdown(!showDurationDropdown)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', background: 'var(--bg)' }}
+                    >
+                      <span>{durationOptions.find(o => o.value === endTime)?.label || ''}</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button type="button" onClick={() => setIsCustomDuration(true)} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.8rem', cursor: 'pointer', padding: 0 }}>
+                        Custom duration...
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {showDurationDropdown && !isCustomDuration && (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 150,
                     background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
@@ -204,7 +240,11 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
                     {durationOptions.map(opt => (
                       <div
                         key={opt.value}
-                        onClick={() => { setEndTime(opt.value); setShowDurationDropdown(false); }}
+                        onClick={() => { 
+                          setIsCustomDuration(false);
+                          setEndTime(opt.value); 
+                          setShowDurationDropdown(false); 
+                        }}
                         style={{
                           padding: '10px 14px', cursor: 'pointer', fontSize: '0.875rem',
                           background: endTime === opt.value ? 'var(--bg-hover)' : 'transparent',
@@ -466,7 +506,7 @@ export default function ScheduleModal({ onClose, onCreated }: Props) {
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn btn-primary">Schedule Meeting</button>
+            <button type="submit" className="btn btn-primary">{initialIsConsultation ? 'Schedule Consultation' : 'Schedule Meeting'}</button>
           </div>
         </form>
       </div>

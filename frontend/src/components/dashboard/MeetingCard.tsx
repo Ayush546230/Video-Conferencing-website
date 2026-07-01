@@ -49,7 +49,7 @@ const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onIn
           </div>
         </div>
         <span className={`status ${meeting.status === 'completed' ? 'status-completed' : 'status-scheduled'}`}>
-          {meeting.status === 'completed' ? 'Completed' : 'Upcoming'}
+          {meeting.status === 'completed' ? 'Completed' : (meeting.isConsultation ? 'Upcoming Consultation' : 'Upcoming')}
         </span>
       </div>
       <div className="meeting-card-info">

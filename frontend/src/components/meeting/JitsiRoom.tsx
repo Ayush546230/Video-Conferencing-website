@@ -12,6 +12,7 @@ interface Props {
   isPrivate?: boolean;
   jwt?: string;
   skipPrejoin?: boolean;
+  onJoin?: () => void;
 }
 
 const CustomSpinner = () => (
@@ -40,7 +41,7 @@ const CustomSpinner = () => (
   </div>
 );
 
-export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll, audioMuted = true, videoMuted = false, isHost = false, isPrivate = false, jwt, skipPrejoin = false }: Props) {
+export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll, audioMuted = true, videoMuted = false, isHost = false, isPrivate = false, jwt, skipPrejoin = false, onJoin }: Props) {
   const [isReady, setIsReady] = React.useState(false);
   const [shouldMount, setShouldMount] = React.useState(false);
   const [showEndCallMenu, setShowEndCallMenu] = React.useState(false);
@@ -172,6 +173,7 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
 
             externalApi.addListener('videoConferenceJoined', () => {
               hasJoinedMeetingRef.current = true;
+              if (onJoin) onJoin();
               if (isHost && isPrivate) {
                 externalApi.executeCommand('toggleLobby', true);
               }

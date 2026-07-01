@@ -12,6 +12,7 @@ export interface Meeting {
   duration?: number;
   hostJoined?: boolean;
   isPrivate?: boolean;
+  isConsultation?: boolean;
 }
 
 export interface Participant {

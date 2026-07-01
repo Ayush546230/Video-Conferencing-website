@@ -9,7 +9,7 @@ import type { Meeting } from '../types';
 
 export default function Dashboard() {
   const { meetings } = useMeetings();
-  const [showSchedule, setShowSchedule] = useState(false);
+  const [showSchedule, setShowSchedule] = useState<{ visible: boolean; isConsultation?: boolean }>({ visible: false });
   const [inviteMeeting, setInviteMeeting] = useState<Meeting | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export default function Dashboard() {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const handleSchedule = React.useCallback(() => setShowSchedule(true), []);
+  const handleSchedule = React.useCallback((isConsultation?: boolean) => setShowSchedule({ visible: true, isConsultation }), []);
 
   return (
     <div className="dashboard" id="dashboard">
@@ -40,9 +40,10 @@ export default function Dashboard() {
 
       <UpcomingMeetings meetings={meetings} onShowToast={showToast} onInvite={setInviteMeeting} />
 
-      {showSchedule && (
+      {showSchedule.visible && (
         <ScheduleModal
-          onClose={() => setShowSchedule(false)}
+          initialIsConsultation={showSchedule.isConsultation}
+          onClose={() => setShowSchedule({ visible: false })}
           onCreated={(meeting) => {
             showToast('Meeting scheduled successfully!');
             setInviteMeeting(meeting);
