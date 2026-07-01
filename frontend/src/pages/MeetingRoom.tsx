@@ -439,7 +439,7 @@ export default function MeetingRoom() {
             <div style={{
               position: 'absolute', bottom: '100%', left: 0, marginBottom: 16, background: 'var(--bg-card)',
               padding: 20, borderRadius: 16, boxShadow: '0 12px 48px rgba(0,0,0,0.6)', border: '1px solid var(--border)',
-              width: 320, maxWidth: 'calc(100vw - 40px)', pointerEvents: 'auto', animation: 'scaleUp 0.2s ease-out'
+              width: 320, maxWidth: 'calc(100vw - 40px)', pointerEvents: 'auto', animation: 'slideUp 0.2s ease-out'
             }}>
               <h3 style={{ color: 'var(--text)', margin: '0 0 16px 0' }}>Extend Consultation</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
