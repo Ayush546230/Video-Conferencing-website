@@ -310,6 +310,9 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
               <button 
                 onClick={() => {
                   setShowEndCallMenu(false);
+                  if (onEndForAll) {
+                    isUnloadingRef.current = true;
+                  }
                   if (externalApiRef.current) {
                     externalApiRef.current.executeCommand('hangup');
                   }

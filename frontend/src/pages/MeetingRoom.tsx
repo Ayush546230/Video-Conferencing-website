@@ -76,8 +76,10 @@ export default function MeetingRoom() {
 
     // Listen for the termination event
     socket.on('meeting-ended', () => {
-      setIsEnded(true);
-      setTimeLeft(30);
+      setIsEnded(prev => {
+        if (!prev) setTimeLeft(30);
+        return true;
+      });
     });
 
     // Listen for host joining to automatically let guests in
@@ -110,17 +112,18 @@ export default function MeetingRoom() {
     const showEndedScreen = isEnded || roomData?.status === 'completed';
     if (!hasLeft && !showEndedScreen) return;
     
-    if (timeLeft <= 0) {
-      navigate('/dashboard');
-      return;
-    }
-
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          navigate('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [hasLeft, isEnded, roomData?.status, timeLeft, navigate]);
+  }, [hasLeft, isEnded, roomData?.status, navigate]);
 
   // Consultation Timer
   useEffect(() => {
@@ -137,14 +140,18 @@ export default function MeetingRoom() {
           // If host, end it for all
           const durationMin = Math.round((Date.now() - joinTime.current) / 60000);
           setRoomData((prev: any) => ({ ...prev, status: 'completed' }));
-          setIsEnded(true);
-          setTimeLeft(30);
+          setIsEnded(prev => {
+            if (!prev) setTimeLeft(30);
+            return true;
+          });
           API.put(`/meetings/${roomData.id}`, { status: 'completed', duration: durationMin })
             .catch(err => console.error('Failed to update meeting status', err));
         } else {
           // If guest, end locally if host hasn't ended it yet
-          setIsEnded(true);
-          setTimeLeft(30);
+          setIsEnded(prev => {
+            if (!prev) setTimeLeft(30);
+            return true;
+          });
         }
         return;
       }
@@ -298,8 +305,10 @@ export default function MeetingRoom() {
   }
 
   const handleLeave = () => {
-    setHasLeft(true);
-    setTimeLeft(30); // reset timer
+    setHasLeft(prev => {
+      if (!prev) setTimeLeft(30);
+      return true;
+    });
   };
 
   const handleEndForAll = () => {
@@ -308,8 +317,10 @@ export default function MeetingRoom() {
       
       if (roomData.isConsultation) {
         setRoomData((prev: any) => ({ ...prev, status: 'completed' }));
-        setIsEnded(true);
-        setTimeLeft(30);
+        setIsEnded(prev => {
+          if (!prev) setTimeLeft(30);
+          return true;
+        });
       } else {
         // Navigate instantly to avoid seeing the rejoin screen
         navigate('/dashboard');
