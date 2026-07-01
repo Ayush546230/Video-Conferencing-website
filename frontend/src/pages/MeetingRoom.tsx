@@ -331,6 +331,10 @@ export default function MeetingRoom() {
     if (!roomData?.id) return;
     const currentEnd = new Date(roomData.endTime).getTime();
     const newEndTime = new Date(currentEnd + minutes * 60000).toISOString();
+    
+    // Optimistic update so it reflects instantly for the host
+    setRoomData((prev: any) => ({ ...prev, endTime: newEndTime }));
+    
     API.put(`/meetings/${roomData.id}`, { endTime: newEndTime }).catch(console.error);
     setShowExtendMenu(false);
     setShowWarningPopup(null);
@@ -399,7 +403,7 @@ export default function MeetingRoom() {
         <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 1000, pointerEvents: 'none' }}>
           
           {/* Timer Badge (hidden when showing warning inline) */}
-          {!showWarningPopup && !showExtendMenu && (
+          {showWarningPopup === null && !showExtendMenu && (
             <div style={{
               background: consultationTimeLeft <= 60 ? 'var(--error, #ef4444)' : 'rgba(0,0,0,0.7)',
               color: 'white', padding: '8px 16px', borderRadius: '20px', fontSize: '1rem', fontWeight: 600,
@@ -423,7 +427,7 @@ export default function MeetingRoom() {
           )}
           
           {/* Warning Popup (Inline) */}
-          {showWarningPopup !== null && !showExtendMenu && (
+          {showWarningPopup !== null && (
             <div style={{
               background: 'var(--bg-card)', padding: '8px 16px', borderRadius: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12,
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)', pointerEvents: 'auto', border: '1px solid var(--border)',
@@ -437,7 +441,7 @@ export default function MeetingRoom() {
               </div>
               <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                 <button className="btn btn-secondary btn-sm" onClick={() => setShowWarningPopup(null)} style={{ padding: '4px 12px', borderRadius: '14px' }}>Ignore</button>
-                <button className="btn btn-primary btn-sm" onClick={() => setShowExtendMenu(true)} style={{ padding: '4px 12px', borderRadius: '14px' }}>Extend</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowExtendMenu(!showExtendMenu)} style={{ padding: '4px 12px', borderRadius: '14px' }}>Extend</button>
               </div>
             </div>
           )}
