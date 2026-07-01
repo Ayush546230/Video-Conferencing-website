@@ -163,19 +163,21 @@ export function AuthProvider({ children }) {
    * Disable push notifications for login
    */
   const disablePushAuth = useCallback(async () => {
+    let endpoint = null;
     // Unsubscribe from push
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
+          endpoint = subscription.endpoint;
           await subscription.unsubscribe();
         }
       }
     }
 
     // Remove from backend
-    const res = await API.delete('/push-auth/subscribe');
+    const res = await API.delete('/push-auth/subscribe', { data: { endpoint } });
     setUser(res.data.user);
     return res.data;
   }, []);

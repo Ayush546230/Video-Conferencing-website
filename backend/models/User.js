@@ -42,7 +42,15 @@ const userSchema = new mongoose.Schema(
     // WebAuthn Passkeys (multiple devices supported)
     passkeys: [authenticatorSchema],
 
-    // Push Notification Subscription (for push auth)
+    // Push Notification Subscriptions (for push auth across multiple devices)
+    pushSubscriptions: [{
+      endpoint: { type: String },
+      keys: {
+        p256dh: { type: String },
+        auth: { type: String },
+      },
+    }],
+    // Legacy support
     pushSubscription: {
       endpoint: { type: String },
       keys: {

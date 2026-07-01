@@ -44,13 +44,23 @@ export const saveSubscription = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    user.pushSubscription = {
+    // Ensure array exists
+    if (!user.pushSubscriptions) {
+      user.pushSubscriptions = [];
+    }
+
+    // Remove if already exists
+    user.pushSubscriptions = user.pushSubscriptions.filter(s => s.endpoint !== subscription.endpoint);
+    
+    // Add new subscription
+    user.pushSubscriptions.push({
       endpoint: subscription.endpoint,
       keys: {
         p256dh: subscription.keys.p256dh,
         auth: subscription.keys.auth,
       },
-    };
+    });
+
     user.authMethods.push = true;
     await user.save();
 
@@ -79,8 +89,16 @@ export const removeSubscription = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    user.pushSubscription = undefined;
-    user.authMethods.push = false;
+    const { endpoint } = req.body;
+    if (endpoint) {
+      user.pushSubscriptions = user.pushSubscriptions.filter(s => s.endpoint !== endpoint);
+    } else {
+      user.pushSubscriptions = [];
+    }
+
+    if (user.pushSubscriptions.length === 0) {
+      user.authMethods.push = false;
+    }
     await user.save();
 
     res.json({
@@ -111,28 +129,34 @@ export const initiateLogin = async (req, res) => {
     // Find user with push enabled
     let user;
     if (endpoint) {
-      user = await User.findOne({ 'pushSubscription.endpoint': endpoint });
+      user = await User.findOne({ $or: [{ 'pushSubscription.endpoint': endpoint }, { 'pushSubscriptions.endpoint': endpoint }] });
     } else if (subscription && subscription.endpoint) {
-      user = await User.findOne({ 'pushSubscription.endpoint': subscription.endpoint });
+      user = await User.findOne({ $or: [{ 'pushSubscription.endpoint': subscription.endpoint }, { 'pushSubscriptions.endpoint': subscription.endpoint }] });
     }
-
-
 
     if (!user) {
       return res.status(404).json({ error: 'No active device subscription found.' });
     }
 
+    // Get the matching subscription object
+    let targetSub = user.pushSubscriptions?.find(s => s.endpoint === (endpoint || subscription.endpoint));
+    if (!targetSub && user.pushSubscription?.endpoint === (endpoint || subscription.endpoint)) {
+      targetSub = user.pushSubscription;
+    }
+
     // Force ensure push auth is active
-    if (!user.authMethods.push || !user.pushSubscription?.endpoint) {
+    if (!user.authMethods.push || !targetSub) {
       user.authMethods.push = true;
       if (subscription && subscription.endpoint) {
-        user.pushSubscription = {
+        targetSub = {
           endpoint: subscription.endpoint,
           keys: {
             p256dh: subscription.keys.p256dh,
             auth: subscription.keys.auth,
           },
         };
+        if (!user.pushSubscriptions) user.pushSubscriptions = [];
+        user.pushSubscriptions.push(targetSub);
       }
       await user.save();
     }
@@ -171,13 +195,18 @@ export const initiateLogin = async (req, res) => {
     });
 
     try {
-      await webpush.sendNotification(user.pushSubscription, pushPayload);
+      await webpush.sendNotification(targetSub, pushPayload);
     } catch (pushErr) {
       console.error('Push notification send error:', pushErr);
       // If subscription expired, clean it up
       if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
-        user.pushSubscription = undefined;
-        user.authMethods.push = false;
+        user.pushSubscriptions = user.pushSubscriptions.filter(s => s.endpoint !== targetSub.endpoint);
+        if (user.pushSubscription && user.pushSubscription.endpoint === targetSub.endpoint) {
+          user.pushSubscription = undefined;
+        }
+        if (user.pushSubscriptions.length === 0 && !user.pushSubscription) {
+          user.authMethods.push = false;
+        }
         await user.save();
         loginRequest.status = 'expired';
         await loginRequest.save();
