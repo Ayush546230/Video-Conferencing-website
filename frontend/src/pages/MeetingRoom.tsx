@@ -409,12 +409,12 @@ export default function MeetingRoom() {
         onJoin={() => setHasJoined(true)}
       />
 
-      {/* Consultation Overlay UI (Host Only) */}
-      {isHost && roomData.isConsultation && consultationTimeLeft !== null && hasJoined && (
-        <div style={{ position: 'absolute', bottom: 20, left: 20, zIndex: 1000, pointerEvents: 'none' }}>
+      {/* Consultation Overlay UI */}
+      {roomData?.isConsultation && consultationTimeLeft !== null && hasJoined && (
+        <div style={{ position: 'absolute', bottom: '100px', left: '24px', zIndex: 1000, pointerEvents: 'none' }}>
           
-          {/* Timer Badge (hidden when showing warning inline) */}
-          {showWarningPopup === null && (
+          {/* Timer Badge (hidden when showing warning inline for host) */}
+          {(!isHost || showWarningPopup === null) && (
             <div style={{
               background: consultationTimeLeft <= 60 ? 'var(--error, #ef4444)' : 'rgba(0,0,0,0.7)',
               color: 'white', padding: '8px 16px', borderRadius: '20px', fontSize: '1rem', fontWeight: 600,
@@ -425,8 +425,8 @@ export default function MeetingRoom() {
             </div>
           )}
           
-          {/* Warning Popup (Inline) */}
-          {showWarningPopup !== null && (
+          {/* Warning Popup (Inline) - Host Only */}
+          {isHost && showWarningPopup !== null && (
             <div style={{
               background: 'var(--bg-card)', padding: '8px 16px', borderRadius: '20px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12,
               boxShadow: '0 8px 24px rgba(0,0,0,0.4)', pointerEvents: 'auto', border: '1px solid var(--border)',
@@ -445,8 +445,8 @@ export default function MeetingRoom() {
             </div>
           )}
 
-          {/* Extend Menu */}
-          {showExtendMenu && (
+          {/* Extend Menu - Host Only */}
+          {isHost && showExtendMenu && (
             <div style={{
               position: 'absolute', bottom: '100%', left: 0, marginBottom: 16, background: 'var(--bg-card)',
               padding: 20, borderRadius: 16, boxShadow: '0 12px 48px rgba(0,0,0,0.6)', border: '1px solid var(--border)',
