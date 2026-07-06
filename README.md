@@ -17,6 +17,13 @@ Welcome to **hi**, a modern, secure, and feature-rich video conferencing platfor
 - **Meeting Dashboard**: Intuitive interface to schedule new meetings, view upcoming ones, and check your meeting history.
 - **Host Privileges**: Meeting creators are automatically assigned Moderator roles with full control.
 
+### ⏱️ Timed Consultation Meetings
+- **Time-bound Sessions**: Schedule meetings with strict durations.
+- **Synchronized Global Timer**: Both host and guests see a live countdown timer seamlessly integrated into the meeting interface.
+- **Smart Warning System**: The host receives unobtrusive inline warnings when the meeting is nearing its end.
+- **On-the-fly Extension**: The host can easily extend the meeting duration (+5 mins, +10 mins, or custom) dynamically without interrupting the ongoing session.
+- **Auto-Termination**: Consultations end automatically for all participants when the time expires, ensuring precise time management.
+
 ### 📅 Smart Scheduling & Notifications
 - **Automated Emails**: Beautifully designed email templates for meeting invitations, reminders, and cancellations.
 - **Brevo API Integration**: Reliable email delivery ensuring your participants never miss an update.
