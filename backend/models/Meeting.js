@@ -60,5 +60,9 @@ const meetingSchema = new mongoose.Schema(
 
 // Index for efficient reminder queries
 meetingSchema.index({ status: 1, reminderSent: 1, startTime: 1 });
+// Index for fast participant dashboard lookup
+meetingSchema.index({ 'participants.email': 1 });
+// Index for sorting and filtering upcoming/past meetings
+meetingSchema.index({ startTime: 1, endTime: 1 });
 
 export default mongoose.model('Meeting', meetingSchema);

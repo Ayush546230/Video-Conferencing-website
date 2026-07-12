@@ -4,7 +4,7 @@ import type { Meeting, UserProfile } from '../types';
 import { API, useAuth } from './AuthContext.jsx';
 
 interface MeetingContextType {
-  meetings: Meeting[];
+  upcomingMeetings: Meeting[];
   userProfile: UserProfile;
   userPreferences: UserPreferences;
   loading: boolean;
@@ -62,7 +62,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 export function MeetingProvider({ children }: { children: ReactNode }) {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [upcomingMeetings, setUpcomingMeetings] = useState<Meeting[]>([]);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_PROFILE);
   const [userPreferences, setUserPreferences] = useState<UserPreferences>(DEFAULT_PREFERENCES);
   const [loading, setLoading] = useState(true);
@@ -73,10 +73,10 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     try {
       const token = localStorage.getItem('auth_token');
       if (!token) {
-        setMeetings([]);
+        setUpcomingMeetings([]);
         return;
       }
-      const res = await API.get('/meetings');
+      const res = await API.get('/meetings?type=upcoming&limit=20');
       const backendMeetings = (res.data.meetings || []).map((m: any) => ({
         id: m.id || m._id,
         userId: m.userId,
@@ -94,7 +94,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
         createdAt: m.createdAt,
         duration: m.duration,
       }));
-      setMeetings(backendMeetings);
+      setUpcomingMeetings(backendMeetings);
     } catch (err: any) {
       if (err.response?.status !== 401) {
         console.error('Failed to fetch meetings:', err.message);
@@ -173,7 +173,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
           const userEmail = (user as any)?.email;
           if (userEmail && !socket) setupSocket(userEmail);
         } else {
-          setMeetings([]);
+          setUpcomingMeetings([]);
           setUserProfile(DEFAULT_PROFILE);
           setUserPreferences(DEFAULT_PREFERENCES);
           if (socket) {
@@ -211,7 +211,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       createdAt: m.createdAt,
       duration: m.duration,
     };
-    setMeetings(prev => [meeting, ...prev]);
+    setUpcomingMeetings(prev => [meeting, ...prev]);
     return meeting;
   }, []);
 
@@ -247,7 +247,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       createdAt: m.createdAt,
       duration: m.duration,
     };
-    setMeetings(prev => [meeting, ...prev]);
+    setUpcomingMeetings(prev => [meeting, ...prev]);
     return meeting;
   }, []);
 
@@ -255,7 +255,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   const addToHistory = useCallback(async (meeting: Meeting) => {
     try {
       await API.put(`/meetings/${meeting.id}`, { status: 'completed', duration: meeting.duration });
-      setMeetings(prev =>
+      setUpcomingMeetings(prev =>
         prev.map(m => (m.id === meeting.id ? { ...m, status: 'completed' as const, duration: meeting.duration } : m))
       );
     } catch (err) {
@@ -267,7 +267,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   const cancelMeeting = useCallback(async (id: string) => {
     try {
       await API.put(`/meetings/${id}`, { status: 'cancelled' });
-      setMeetings(prev => prev.map(m => (m.id === id ? { ...m, status: 'cancelled' as const } : m)));
+      setUpcomingMeetings(prev => prev.map(m => (m.id === id ? { ...m, status: 'cancelled' as const } : m)));
     } catch (err) {
       console.error('Failed to cancel meeting:', err);
     }
@@ -277,7 +277,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   const deleteMeeting = useCallback(async (id: string) => {
     try {
       await API.delete(`/meetings/${id}`);
-      setMeetings(prev => prev.filter(m => m.id !== id));
+      setUpcomingMeetings(prev => prev.filter(m => m.id !== id));
     } catch (err) {
       console.error('Failed to delete meeting:', err);
     }
@@ -287,7 +287,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   const clearHistory = useCallback(async () => {
     try {
       await API.delete('/meetings/history/clear');
-      setMeetings([]);
+      setUpcomingMeetings([]);
     } catch (err) {
       console.error('Failed to clear history:', err);
       throw err;
@@ -330,7 +330,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const contextValue = React.useMemo(() => ({
-    meetings,
+    upcomingMeetings,
     userProfile,
     userPreferences,
     loading,
@@ -345,7 +345,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     refreshMeetings,
     sendInvites,
   }), [
-    meetings,
+    upcomingMeetings,
     userProfile,
     userPreferences,
     loading,

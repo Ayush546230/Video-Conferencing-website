@@ -8,7 +8,7 @@ import InviteModal from '../components/invite/InviteModal';
 import type { Meeting } from '../types';
 
 export default function Dashboard() {
-  const { meetings } = useMeetings();
+  const { upcomingMeetings } = useMeetings();
   const [showSchedule, setShowSchedule] = useState<{ visible: boolean; isConsultation?: boolean }>({ visible: false });
   const [inviteMeeting, setInviteMeeting] = useState<Meeting | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -38,7 +38,7 @@ export default function Dashboard() {
 
       <QuickActions onSchedule={handleSchedule} onShowToast={showToast} />
 
-      <UpcomingMeetings meetings={meetings} onShowToast={showToast} onInvite={setInviteMeeting} />
+      <UpcomingMeetings meetings={upcomingMeetings} onShowToast={showToast} onInvite={setInviteMeeting} />
 
       {showSchedule.visible && (
         <ScheduleModal

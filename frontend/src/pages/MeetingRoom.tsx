@@ -12,7 +12,7 @@ import { API, useAuth } from '../context/AuthContext';
 export default function MeetingRoom() {
   const { roomName } = useParams<{ roomName: string }>();
   const navigate = useNavigate();
-  const { userProfile, userPreferences, addToHistory, meetings, loading } = useMeetings();
+  const { userProfile, userPreferences, addToHistory, upcomingMeetings, loading } = useMeetings();
   const { user, loading: authLoading } = useAuth();
   const joinTime = useRef<number>(Date.now());
   const [roomData, setRoomData] = useState<any>(null);
@@ -409,7 +409,7 @@ export default function MeetingRoom() {
       // Update backend in the background
       API.put(`/meetings/${roomData.id}`, { status: 'completed', duration: durationMin })
         .then(() => {
-          const meeting = meetings.find(m => m.roomName === roomName);
+          const meeting = upcomingMeetings.find((m: any) => m.roomName === roomName);
           if (meeting) {
             addToHistory({ ...meeting, duration: durationMin });
           }

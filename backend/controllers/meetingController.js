@@ -27,13 +27,75 @@ function getMeetingLink(roomName) {
 // ─── GET /api/meetings ──────────────────────────────────────
 export const getMeetings = async (req, res) => {
   try {
-    const meetings = await Meeting.find({
+    const { type, page = 1, limit = 20 } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+    
+    const now = new Date();
+    
+    // Base query: User is either the host or a participant
+    const baseQuery = {
       $or: [
         { userId: req.user._id },
         { 'participants.email': req.user.email }
       ]
-    }).sort({ createdAt: -1 });
-    res.json({ meetings });
+    };
+    
+    let timeQuery = {};
+    let sortQuery = { createdAt: -1 };
+    
+    if (type === 'upcoming') {
+      timeQuery = {
+        $or: [
+          { endTime: { $gte: now } },
+          { endTime: { $exists: false }, startTime: { $gte: now } },
+          { status: 'scheduled' } // Always show newly scheduled instant meetings that might have past start time momentarily
+        ],
+        status: { $ne: 'completed' },
+        status: { $ne: 'cancelled' }
+      };
+      // Wait, MongoDB object keys cannot be duplicated in object literals.
+      timeQuery = {
+        $and: [
+          {
+            $or: [
+              { endTime: { $gte: now } },
+              { endTime: { $exists: false }, startTime: { $gte: now } },
+              { hostJoined: true, status: { $ne: 'completed' } } // If host joined and it's active
+            ]
+          },
+          { status: { $nin: ['completed', 'cancelled'] } }
+        ]
+      };
+      sortQuery = { startTime: 1 };
+    } else if (type === 'history') {
+      timeQuery = {
+        $or: [
+          { endTime: { $lt: now } },
+          { endTime: { $exists: false }, startTime: { $lt: now }, hostJoined: false },
+          { status: { $in: ['completed', 'cancelled'] } }
+        ]
+      };
+      sortQuery = { startTime: -1 };
+    }
+    
+    const finalQuery = type ? { $and: [baseQuery, timeQuery] } : baseQuery;
+    
+    const [meetings, total] = await Promise.all([
+      Meeting.find(finalQuery).sort(sortQuery).skip(skip).limit(limitNum),
+      Meeting.countDocuments(finalQuery)
+    ]);
+    
+    res.json({ 
+      meetings,
+      pagination: {
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        hasMore: pageNum * limitNum < total
+      }
+    });
   } catch (err) {
     console.error('Get meetings error:', err);
     res.status(500).json({ error: 'Failed to fetch meetings' });

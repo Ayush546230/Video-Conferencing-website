@@ -1,20 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Video, Clock, Search, Trash2, Copy, Calendar } from 'lucide-react';
 import { useMeetings } from '../context/MeetingContext';
-import { useAuth } from '../context/AuthContext';
+import { API, useAuth } from '../context/AuthContext';
 import { formatDate, formatDuration, getRelativeTime } from '../utils/dateUtils';
 import { copyToClipboard } from '../utils/meetingUtils';
 
 export default function History() {
-  const { meetings, deleteMeeting, clearHistory } = useMeetings();
+  const { deleteMeeting, clearHistory } = useMeetings();
   const { user } = useAuth() as any;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [toast, setToast] = useState<string | null>(null);
   const [expandedDescId, setExpandedDescId] = useState<string | null>(null);
 
-  const allMeetings = meetings.filter(m => {
+  const [historyMeetings, setHistoryMeetings] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchHistory = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      const res = await API.get(`/meetings?type=history&page=${pageNum}&limit=20`);
+      const newMeetings = res.data.meetings.map((m: any) => ({
+        id: m.id || m._id,
+        userId: m.userId,
+        title: m.title,
+        roomName: m.roomName,
+        link: m.link,
+        startTime: m.startTime,
+        endTime: m.endTime,
+        description: m.description,
+        participants: m.participants || [],
+        status: m.status,
+        hostJoined: m.hostJoined,
+        isPrivate: m.isPrivate,
+        isConsultation: m.isConsultation,
+        createdAt: m.createdAt,
+        duration: m.duration,
+      }));
+      
+      if (pageNum === 1) {
+        setHistoryMeetings(newMeetings);
+      } else {
+        setHistoryMeetings(prev => [...prev, ...newMeetings]);
+      }
+      setHasMore(res.data.pagination?.hasMore || false);
+    } catch (err) {
+      console.error('Failed to fetch history:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory(1);
+  }, []);
+
+  const allMeetings = historyMeetings.filter(m => {
     const s = search.toLowerCase();
     return (
       m.title.toLowerCase().includes(s) ||
@@ -45,7 +89,7 @@ export default function History() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        {meetings.length > 0 && (
+        {historyMeetings.length > 0 && (
           <button 
             className="btn btn-ghost btn-sm" 
             style={{ color: 'var(--accent-red)' }} 
@@ -53,6 +97,7 @@ export default function History() {
               if (window.confirm('Are you sure you want to clear your entire meeting history? This action cannot be undone.')) {
                 try {
                   await clearHistory();
+                  setHistoryMeetings([]);
                   showToast('Meeting history cleared');
                 } catch (err) {
                   showToast('Failed to clear history');
@@ -97,7 +142,10 @@ export default function History() {
                     <Copy size={16} />
                   </button>
                   {(!m.userId || m.userId === (user?.id || user?._id)) && (
-                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={async () => {
+                      await deleteMeeting(m.id);
+                      setHistoryMeetings(prev => prev.filter(x => x.id !== m.id));
+                    }} title="Delete" style={{ color: 'var(--accent-red)' }}>
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -134,6 +182,21 @@ export default function History() {
             </div>
 
           ))}
+          {hasMore && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  const nextPage = page + 1;
+                  setPage(nextPage);
+                  fetchHistory(nextPage);
+                }}
+                disabled={loading}
+              >
+                {loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
+          )}
         </div>
       )}
       {toast && <div className="toast">{toast}</div>}
