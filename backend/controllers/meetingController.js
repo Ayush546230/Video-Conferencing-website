@@ -201,6 +201,7 @@ export const createMeeting = async (req, res) => {
         const meetingData = meeting.toJSON();
         for (const p of participants) {
           if (p.email) {
+            io.to(`dashboard-${p.email}`).emit('dashboard-update');
             sendMeetingInvite(meetingData, p.email, req.user.name || 'Someone').catch(err =>
               console.error(`Failed to send invite to ${p.email}:`, err.message)
             );
@@ -338,6 +339,7 @@ export const sendInvites = async (req, res) => {
 
     for (const email of recipients) {
       try {
+        io.to(`dashboard-${email}`).emit('dashboard-update');
         await sendMeetingInvite(meeting.toJSON(), email, senderName);
         results.push({ email, status: 'sent' });
       } catch (err) {
