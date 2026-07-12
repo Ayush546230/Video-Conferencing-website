@@ -119,7 +119,8 @@ export const getMeetingByRoomName = async (req, res) => {
         isConsultation: meeting.isConsultation,
         startTime: meeting.startTime,
         endTime: meeting.endTime,
-        userId: meeting.userId
+        userId: meeting.userId,
+        participants: meeting.participants
       } 
     });
   } catch (err) {
