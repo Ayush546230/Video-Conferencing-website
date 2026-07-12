@@ -143,6 +143,11 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     };
     init();
 
+    // Poll for real-time updates (e.g. host cancels meeting)
+    const pollInterval = setInterval(() => {
+      refreshMeetings();
+    }, 15000);
+
     // Listen for auth changes (login/logout)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'auth_token') {
@@ -156,7 +161,10 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       }
     };
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, [refreshMeetings, fetchProfile, user]);
 
   // ─── Create Instant Meeting ─────────────────────────────
