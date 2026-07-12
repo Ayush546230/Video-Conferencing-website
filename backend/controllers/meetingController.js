@@ -27,7 +27,12 @@ function getMeetingLink(roomName) {
 // ─── GET /api/meetings ──────────────────────────────────────
 export const getMeetings = async (req, res) => {
   try {
-    const meetings = await Meeting.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const meetings = await Meeting.find({
+      $or: [
+        { userId: req.user._id },
+        { 'participants.email': req.user.email }
+      ]
+    }).sort({ createdAt: -1 });
     res.json({ meetings });
   } catch (err) {
     console.error('Get meetings error:', err);

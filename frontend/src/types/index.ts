@@ -1,5 +1,6 @@
 export interface Meeting {
   id: string;
+  userId?: string;
   title: string;
   roomName: string;
   link: string;

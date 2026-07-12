@@ -5,6 +5,7 @@ import type { Meeting } from '../../types';
 import { formatDate } from '../../utils/dateUtils';
 import { copyToClipboard } from '../../utils/meetingUtils';
 import { useMeetings } from '../../context/MeetingContext';
+import { useAuth } from '../../context/AuthContext';
 
 interface Props {
   meeting: Meeting;
@@ -16,6 +17,8 @@ const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onIn
   const [showDesc, setShowDesc] = React.useState(false);
   const navigate = useNavigate();
   const { cancelMeeting } = useMeetings();
+  const { user } = useAuth() as any;
+  const isHost = !meeting.userId || meeting.userId === user?.id;
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -95,8 +98,10 @@ const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onIn
           </button>
         )}
         <button className="btn btn-secondary btn-sm" onClick={handleCopy}><Copy size={14} /> Copy</button>
-        <button className="btn btn-ghost btn-sm" onClick={() => onInvite(meeting)}><ExternalLink size={14} /> Invite</button>
-        {meeting.status === 'scheduled' && (
+        {isHost && (
+          <button className="btn btn-ghost btn-sm" onClick={() => onInvite(meeting)}><ExternalLink size={14} /> Invite</button>
+        )}
+        {meeting.status === 'scheduled' && isHost && (
           <button 
             className="btn btn-ghost btn-sm" 
             style={{ color: 'var(--error)' }}
