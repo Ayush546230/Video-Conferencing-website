@@ -12,6 +12,7 @@ interface MeetingContextType {
   addToHistory: (meeting: Meeting) => Promise<void>;
   cancelMeeting: (id: string) => Promise<void>;
   deleteMeeting: (id: string) => Promise<void>;
+  clearHistory: () => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => Promise<void>;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
   refreshMeetings: () => Promise<void>;
@@ -251,6 +252,16 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ─── Clear History ──────────────────────────────────────
+  const clearHistory = useCallback(async () => {
+    try {
+      await API.delete('/meetings/history/clear');
+      setMeetings([]);
+    } catch (err) {
+      console.error('Failed to clear history:', err);
+    }
+  }, []);
+
   // ─── Update Profile ─────────────────────────────────────
   const updateProfile = useCallback(async (profile: Partial<UserProfile>) => {
     try {
@@ -296,6 +307,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     addToHistory,
     cancelMeeting,
     deleteMeeting,
+    clearHistory,
     updateProfile,
     updatePreferences,
     refreshMeetings,
@@ -310,6 +322,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     addToHistory,
     cancelMeeting,
     deleteMeeting,
+    clearHistory,
     updateProfile,
     updatePreferences,
     refreshMeetings,

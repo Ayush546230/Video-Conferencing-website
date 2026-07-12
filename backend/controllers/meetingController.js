@@ -271,3 +271,22 @@ export const sendInvites = async (req, res) => {
     res.status(500).json({ error: 'Failed to send invites' });
   }
 };
+
+// ─── DELETE /api/meetings/history/clear ────────────────────
+export const clearHistory = async (req, res) => {
+  try {
+    // 1. Delete all meetings where the user is the host
+    await Meeting.deleteMany({ userId: req.user._id });
+
+    // 2. Remove the user from the participants list of meetings where they are an invitee
+    await Meeting.updateMany(
+      { 'participants.email': req.user.email },
+      { $pull: { participants: { email: req.user.email } } }
+    );
+
+    res.json({ message: 'History cleared successfully' });
+  } catch (err) {
+    console.error('Clear history error:', err);
+    res.status(500).json({ error: 'Failed to clear history' });
+  }
+};

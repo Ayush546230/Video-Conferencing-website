@@ -7,7 +7,7 @@ import { formatDate, formatDuration, getRelativeTime } from '../utils/dateUtils'
 import { copyToClipboard } from '../utils/meetingUtils';
 
 export default function History() {
-  const { meetings, deleteMeeting } = useMeetings();
+  const { meetings, deleteMeeting, clearHistory } = useMeetings();
   const { user } = useAuth() as any;
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -35,8 +35,8 @@ export default function History() {
         View and manage your past and upcoming meetings
       </p>
 
-      <div className="history-filters">
-        <div className="join-input history-search">
+      <div className="history-filters" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div className="join-input history-search" style={{ flex: 1, minWidth: '200px', maxWidth: '400px', margin: 0 }}>
           <Search size={18} color="var(--text-muted)" />
           <input
             type="text"
@@ -45,6 +45,20 @@ export default function History() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+        {meetings.length > 0 && (
+          <button 
+            className="btn btn-ghost btn-sm" 
+            style={{ color: 'var(--accent-red)' }} 
+            onClick={async () => {
+              if (window.confirm('Are you sure you want to clear your entire meeting history? This action cannot be undone.')) {
+                await clearHistory();
+                showToast('Meeting history cleared');
+              }
+            }}
+          >
+            <Trash2 size={16} /> Clear All
+          </button>
+        )}
       </div>
 
       {allMeetings.length === 0 ? (

@@ -5,6 +5,7 @@ import {
   createMeeting,
   updateMeeting,
   deleteMeeting,
+  clearHistory,
   sendInvites,
   getMeetingByRoomName,
   getJaaSToken,
@@ -23,6 +24,7 @@ router.get('/room/:roomName/token', getJaaSToken);
 router.get('/', getMeetings);
 router.post('/', createMeeting);
 router.put('/:id', updateMeeting);
+router.delete('/history/clear', clearHistory);
 router.delete('/:id', deleteMeeting);
 router.post('/:id/invite', sendInvites);
 
