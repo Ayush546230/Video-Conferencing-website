@@ -12,7 +12,7 @@ interface Props {
 
 const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast }: Props) {
   const navigate = useNavigate();
-  const { createInstantMeeting, meetings } = useMeetings();
+  const { createInstantMeeting, upcomingMeetings } = useMeetings();
   const [linkBox, setLinkBox] = useState<{link: string, roomName: string} | null>(null);
   const [hoveredCard, setHoveredCard] = useState<'new' | 'schedule' | 'consult' | null>(null);
 
@@ -25,7 +25,7 @@ const QuickActions = React.memo(function QuickActions({ onSchedule, onShowToast 
     }
   };
 
-  const recentCount = meetings.filter(m => m.status === 'completed').length;
+  const recentCount = (upcomingMeetings || []).filter(m => m.status === 'completed').length;
 
   return (
     <div>
