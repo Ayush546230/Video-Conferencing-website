@@ -341,7 +341,9 @@ export default function MeetingRoom() {
           <>
             <h2 style={{ marginBottom: 8 }}>Private Meeting</h2>
             <p style={{ color: 'var(--text-secondary)', maxWidth: 400, marginBottom: 24 }}>
-              You are not on the invite list for this meeting. You must ask the host for permission to join.
+              {isInvitee
+                ? 'This is a private meeting. You must ask the host for permission to join.'
+                : 'You are not on the invite list for this meeting. You must ask the host for permission to join.'}
             </p>
             <button 
               className="btn btn-primary" 
@@ -350,7 +352,7 @@ export default function MeetingRoom() {
                 if (socketRef.current) {
                   socketRef.current.emit('guest-knocking', { 
                     roomName, 
-                    user: { name: userProfile?.displayName, email: userProfile?.email } 
+                    user: { name: userProfile?.displayName, email: userProfile?.email, isInvitee } 
                   });
                   setGuestStatus('waiting');
                 }
@@ -572,7 +574,7 @@ export default function MeetingRoom() {
               boxShadow: 'var(--shadow-lg)', border: '1px solid var(--primary)',
               animation: 'slideInRight 0.3s ease-out', width: '300px'
             }}>
-              <h4 style={{ margin: '0 0 4px 0', color: 'var(--text)' }}>Guest Knocking</h4>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--text)' }}>{guest.isInvitee ? 'Invitee Knocking' : 'Guest Knocking'}</h4>
               <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                 <strong>{guest.name || guest.email}</strong> wants to join the meeting.
               </p>
