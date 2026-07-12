@@ -174,9 +174,6 @@ export default function JitsiRoom({ roomName, displayName, onLeave, onEndForAll,
             externalApi.addListener('videoConferenceJoined', () => {
               hasJoinedMeetingRef.current = true;
               if (onJoin) onJoin();
-              if (isHost && isPrivate) {
-                externalApi.executeCommand('toggleLobby', true);
-              }
             });
             externalApi.addListener('videoConferenceLeft', () => {
               if (!isUnloadingRef.current) {
