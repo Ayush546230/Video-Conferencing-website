@@ -259,6 +259,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       setMeetings([]);
     } catch (err) {
       console.error('Failed to clear history:', err);
+      throw err;
     }
   }, []);
 

@@ -51,8 +51,12 @@ export default function History() {
             style={{ color: 'var(--accent-red)' }} 
             onClick={async () => {
               if (window.confirm('Are you sure you want to clear your entire meeting history? This action cannot be undone.')) {
-                await clearHistory();
-                showToast('Meeting history cleared');
+                try {
+                  await clearHistory();
+                  showToast('Meeting history cleared');
+                } catch (err) {
+                  showToast('Failed to clear history');
+                }
               }
             }}
           >
