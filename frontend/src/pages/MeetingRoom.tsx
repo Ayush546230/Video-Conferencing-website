@@ -298,7 +298,19 @@ export default function MeetingRoom() {
 
   const isHost = userProfile?.id === roomData.userId;
   const isInvitee = roomData.participants?.some((p: any) => p.email === userProfile?.email);
-  const isGuest = !isHost && !isInvitee;
+  const isInstantMeeting = roomData.type === 'instant';
+
+  let requiresPermission = false;
+  if (!isHost) {
+    if (isInstantMeeting) {
+      requiresPermission = false;
+    } else if (roomData.isPrivate) {
+      requiresPermission = true; // Everyone must knock
+    } else {
+      requiresPermission = !isInvitee; // Invitees join directly, guests knock
+    }
+  }
+  const isGuest = requiresPermission;
 
   if (!isHost && !roomData.hostJoined) {
     return (

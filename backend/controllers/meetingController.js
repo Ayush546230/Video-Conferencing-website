@@ -111,6 +111,7 @@ export const getMeetingByRoomName = async (req, res) => {
     res.json({ 
       meeting: {
         id: meeting._id,
+        type: meeting.type,
         title: meeting.title,
         status: meeting.status,
         hostJoined: meeting.hostJoined,
@@ -174,6 +175,7 @@ export const createMeeting = async (req, res) => {
       
       meetingsToCreate.push({
         userId: req.user._id,
+        type: type === 'instant' ? 'instant' : 'scheduled',
         title: title || (type === 'instant' ? 'Instant Meeting' : 'Scheduled Meeting'),
         roomName,
         link,

@@ -14,6 +14,7 @@ const meetingSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    type: { type: String, enum: ['instant', 'scheduled'], default: 'scheduled' },
     title: { type: String, required: true, default: 'Meeting' },
     roomName: { type: String, required: true, unique: true },
     link: { type: String, required: true },
