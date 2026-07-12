@@ -200,6 +200,13 @@ export const updateMeeting = async (req, res) => {
       }
     }
 
+    // Notify participants via WebSocket to update their dashboards
+    if (meeting.participants && meeting.participants.length > 0) {
+      meeting.participants.forEach(p => {
+        if (p.email) io.to(`dashboard-${p.email}`).emit('dashboard-update');
+      });
+    }
+
     res.json({ meeting: meeting.toJSON() });
   } catch (err) {
     console.error('Update meeting error:', err);
@@ -212,6 +219,14 @@ export const deleteMeeting = async (req, res) => {
   try {
     const result = await Meeting.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
     if (!result) return res.status(404).json({ error: 'Meeting not found' });
+    
+    // Notify participants via WebSocket to update their dashboards
+    if (result.participants && result.participants.length > 0) {
+      result.participants.forEach(p => {
+        if (p.email) io.to(`dashboard-${p.email}`).emit('dashboard-update');
+      });
+    }
+
     res.json({ message: 'Meeting deleted' });
   } catch (err) {
     console.error('Delete meeting error:', err);

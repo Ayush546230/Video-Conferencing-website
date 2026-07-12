@@ -69,6 +69,11 @@ io.on('connection', (socket) => {
   socket.on('join-push-room', (requestId) => {
     socket.join(`push-${requestId}`);
   });
+
+  // Client joins their dashboard room for real-time updates
+  socket.on('join-dashboard', (email) => {
+    socket.join(`dashboard-${email}`);
+  });
 });
 
 // ─── Connect MongoDB ───────────────────────────────────────

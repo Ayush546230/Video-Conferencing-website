@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback, useState, useEffect, type ReactNode } from 'react';
+import { io } from 'socket.io-client';
 import type { Meeting, UserProfile } from '../types';
 import { API, useAuth } from './AuthContext.jsx';
 
@@ -136,33 +137,55 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    // Socket.io for real-time dashboard updates
+    let socket: any = null;
+    const setupSocket = (email: string) => {
+      let apiUrl = (import.meta as any).env.VITE_API_URL || '';
+      if (apiUrl.endsWith('/api')) apiUrl = apiUrl.replace(/\/api$/, '');
+      
+      socket = apiUrl ? io(apiUrl, { withCredentials: true }) : io({ withCredentials: true });
+      socket.emit('join-dashboard', email);
+      
+      socket.on('dashboard-update', () => {
+        refreshMeetings();
+      });
+    };
+
     const init = async () => {
       setLoading(true);
       await Promise.all([refreshMeetings(), fetchProfile()]);
       setLoading(false);
     };
     init();
-
-    // Poll for real-time updates (e.g. host cancels meeting)
-    const pollInterval = setInterval(() => {
-      refreshMeetings();
-    }, 15000);
+    
+    // We need to wait for fetchProfile to finish so we have the user's email to join the socket room
+    // However, since user is from AuthContext, we can just use user.email directly if available
+    const userEmail = (user as any)?.email;
+    if (userEmail) {
+      setupSocket(userEmail);
+    }
 
     // Listen for auth changes (login/logout)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'auth_token') {
         if (e.newValue) {
           init();
+          const userEmail = (user as any)?.email;
+          if (userEmail && !socket) setupSocket(userEmail);
         } else {
           setMeetings([]);
           setUserProfile(DEFAULT_PROFILE);
           setUserPreferences(DEFAULT_PREFERENCES);
+          if (socket) {
+            socket.disconnect();
+            socket = null;
+          }
         }
       }
     };
     window.addEventListener('storage', handleStorage);
     return () => {
-      clearInterval(pollInterval);
+      if (socket) socket.disconnect();
       window.removeEventListener('storage', handleStorage);
     };
   }, [refreshMeetings, fetchProfile, user]);
