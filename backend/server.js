@@ -50,6 +50,21 @@ io.on('connection', (socket) => {
     socket.join(roomName);
   });
 
+  // Guest knocking to join a meeting
+  socket.on('guest-knocking', (data) => {
+    socket.to(data.roomName).emit('guest-knocking', { ...data.user, socketId: socket.id });
+  });
+
+  // Host admits a guest
+  socket.on('admit-guest', (socketId) => {
+    io.to(socketId).emit('guest-admitted');
+  });
+
+  // Host denies a guest
+  socket.on('deny-guest', (socketId) => {
+    io.to(socketId).emit('guest-denied');
+  });
+
   // Client joins a push authentication room to listen for login approval
   socket.on('join-push-room', (requestId) => {
     socket.join(`push-${requestId}`);

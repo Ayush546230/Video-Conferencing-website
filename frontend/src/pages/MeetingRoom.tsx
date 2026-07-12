@@ -26,6 +26,12 @@ export default function MeetingRoom() {
   const [timeLeft, setTimeLeft] = useState(30);
   const [hasJoined, setHasJoined] = useState(false);
 
+  // Custom Waiting Room States
+  type GuestStatus = 'checking' | 'knocking' | 'waiting' | 'admitted' | 'denied';
+  const [guestStatus, setGuestStatus] = useState<GuestStatus>('checking');
+  const [knockingGuests, setKnockingGuests] = useState<any[]>([]);
+  const socketRef = useRef<Socket | null>(null);
+
   // Consultation states
   const [consultationTimeLeft, setConsultationTimeLeft] = useState<number | null>(null);
   const [showWarningPopup, setShowWarningPopup] = useState<number | null>(null);
@@ -70,6 +76,8 @@ export default function MeetingRoom() {
     const socket: Socket = apiUrl
       ? io(apiUrl, { withCredentials: true })
       : io({ withCredentials: true }); // Automatically uses current host and Vite proxies /socket.io
+      
+    socketRef.current = socket;
 
     // Join the specific meeting room channel
     socket.emit('join-room', roomName);
@@ -102,8 +110,25 @@ export default function MeetingRoom() {
       setShowWarningPopup(null);
     });
 
+    // Waiting Room Listeners
+    socket.on('guest-knocking', (guest) => {
+      setKnockingGuests(prev => {
+        if (prev.find(g => g.socketId === guest.socketId)) return prev;
+        return [...prev, guest];
+      });
+    });
+
+    socket.on('guest-admitted', () => {
+      setGuestStatus('admitted');
+    });
+
+    socket.on('guest-denied', () => {
+      setGuestStatus('denied');
+    });
+
     return () => {
       socket.disconnect();
+      socketRef.current = null;
     };
   }, [roomName]);
 
@@ -272,6 +297,8 @@ export default function MeetingRoom() {
   }
 
   const isHost = userProfile?.id === roomData.userId;
+  const isInvitee = roomData.participants?.some((p: any) => p.email === userProfile?.email);
+  const isGuest = !isHost && !isInvitee;
 
   if (!isHost && !roomData.hostJoined) {
     return (
@@ -284,6 +311,59 @@ export default function MeetingRoom() {
         <div className="spinner" style={{ borderTopColor: 'var(--primary)', borderLeftColor: 'var(--primary)', borderBottomColor: 'var(--primary)', width: 40, height: 40, marginBottom: 24, borderWidth: 3 }}></div>
         <h2 style={{ marginBottom: 8 }}>Waiting for Host</h2>
         <p style={{ color: 'var(--text-secondary)', maxWidth: 400 }}>Please wait, the meeting will start as soon as the host joins.</p>
+      </div>
+    );
+  }
+
+  // Waiting Room Logic for Guests
+  if (isGuest && guestStatus !== 'admitted') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+          <img src="/Hi_Logo.png" alt="hi logo" style={{ height: '40px' }} />
+          <div className="hide-on-mobile" style={{ width: '1px', height: '50px', background: 'var(--border)' }}></div>
+          <img src="/powered_by_aiRender.png" alt="Powered by aiRender" className="hide-on-mobile" style={{ height: '72px' }} />
+        </div>
+        
+        {guestStatus === 'checking' && (
+          <>
+            <h2 style={{ marginBottom: 8 }}>Private Meeting</h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: 400, marginBottom: 24 }}>
+              You are not on the invite list for this meeting. You must ask the host for permission to join.
+            </p>
+            <button 
+              className="btn btn-primary" 
+              onClick={() => {
+                setGuestStatus('knocking');
+                if (socketRef.current) {
+                  socketRef.current.emit('guest-knocking', { 
+                    roomName, 
+                    user: { name: userProfile?.displayName, email: userProfile?.email } 
+                  });
+                  setGuestStatus('waiting');
+                }
+              }}
+            >
+              Ask to Join
+            </button>
+          </>
+        )}
+
+        {(guestStatus === 'knocking' || guestStatus === 'waiting') && (
+          <>
+            <div className="spinner" style={{ borderTopColor: 'var(--primary)', borderLeftColor: 'var(--primary)', borderBottomColor: 'var(--primary)', width: 40, height: 40, marginBottom: 24, borderWidth: 3 }}></div>
+            <h2 style={{ marginBottom: 8 }}>Asking to join...</h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: 400 }}>Waiting for the host to let you in.</p>
+          </>
+        )}
+
+        {guestStatus === 'denied' && (
+          <>
+            <h2 style={{ color: 'var(--error)', marginBottom: 8 }}>Entry Denied</h2>
+            <p style={{ color: 'var(--text-secondary)', maxWidth: 400, marginBottom: 24 }}>The host declined your request to join.</p>
+            <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
+          </>
+        )}
       </div>
     );
   }
@@ -468,6 +548,46 @@ export default function MeetingRoom() {
               <button className="btn btn-ghost" style={{ width: '100%' }} onClick={() => setShowExtendMenu(false)}>Cancel</button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Waiting Room Host Approval UI */}
+      {isHost && knockingGuests.length > 0 && (
+        <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 2000, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {knockingGuests.map((guest, index) => (
+            <div key={guest.socketId + index} style={{
+              background: 'var(--bg-card)', padding: '16px', borderRadius: '12px',
+              boxShadow: 'var(--shadow-lg)', border: '1px solid var(--primary)',
+              animation: 'slideInRight 0.3s ease-out', width: '300px'
+            }}>
+              <h4 style={{ margin: '0 0 4px 0', color: 'var(--text)' }}>Guest Knocking</h4>
+              <p style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <strong>{guest.name || guest.email}</strong> wants to join the meeting.
+              </p>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button 
+                  className="btn btn-primary btn-sm" 
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    socketRef.current?.emit('admit-guest', guest.socketId);
+                    setKnockingGuests(prev => prev.filter(g => g.socketId !== guest.socketId));
+                  }}
+                >
+                  Admit
+                </button>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  style={{ flex: 1 }}
+                  onClick={() => {
+                    socketRef.current?.emit('deny-guest', guest.socketId);
+                    setKnockingGuests(prev => prev.filter(g => g.socketId !== guest.socketId));
+                  }}
+                >
+                  Deny
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
