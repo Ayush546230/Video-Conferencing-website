@@ -18,7 +18,7 @@ const MeetingCard = React.memo(function MeetingCard({ meeting, onShowToast, onIn
   const navigate = useNavigate();
   const { cancelMeeting } = useMeetings();
   const { user } = useAuth() as any;
-  const isHost = !meeting.userId || meeting.userId === user?.id;
+  const isHost = !meeting.userId || meeting.userId === (user?.id || user?._id);
 
   const handleCopy = async (e: React.MouseEvent) => {
     e.stopPropagation();

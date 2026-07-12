@@ -78,7 +78,7 @@ export default function History() {
                   <button className="btn btn-secondary btn-sm btn-icon" onClick={async () => { await copyToClipboard(m.link); showToast('Link copied!'); }} title="Copy link">
                     <Copy size={16} />
                   </button>
-                  {(!m.userId || m.userId === user?.id) && (
+                  {(!m.userId || m.userId === (user?.id || user?._id)) && (
                     <button className="btn btn-ghost btn-sm btn-icon" onClick={() => deleteMeeting(m.id)} title="Delete" style={{ color: 'var(--accent-red)' }}>
                       <Trash2 size={16} />
                     </button>
