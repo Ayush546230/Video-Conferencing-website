@@ -165,11 +165,6 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       setupSocket(userEmail);
     }
 
-    // Fallback polling for Vercel serverless environments where websockets are unreliable
-    const pollInterval = setInterval(() => {
-      refreshMeetings();
-    }, 15000);
-
     // Listen for auth changes (login/logout)
     const handleStorage = (e: StorageEvent) => {
       if (e.key === 'auth_token') {
@@ -191,7 +186,6 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', handleStorage);
     return () => {
       if (socket) socket.disconnect();
-      clearInterval(pollInterval);
       window.removeEventListener('storage', handleStorage);
     };
   }, [refreshMeetings, fetchProfile, user]);
