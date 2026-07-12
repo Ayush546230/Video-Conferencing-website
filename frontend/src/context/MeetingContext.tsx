@@ -77,6 +77,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
       const res = await API.get('/meetings');
       const backendMeetings = (res.data.meetings || []).map((m: any) => ({
         id: m.id || m._id,
+        userId: m.userId,
         title: m.title,
         roomName: m.roomName,
         link: m.link,
@@ -163,6 +164,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     const m = res.data.meeting;
     const meeting: Meeting = {
       id: m.id || m._id,
+      userId: m.userId,
       title: m.title,
       roomName: m.roomName,
       link: m.link,
@@ -198,6 +200,7 @@ export function MeetingProvider({ children }: { children: ReactNode }) {
     const m = res.data.meeting;
     const meeting: Meeting = {
       id: m.id || m._id,
+      userId: m.userId,
       title: m.title,
       roomName: m.roomName,
       link: m.link,
