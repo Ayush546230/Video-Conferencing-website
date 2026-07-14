@@ -36,9 +36,14 @@ export const getMeetings = async (req, res) => {
     
     // Base query: User is either the host or a participant
     const baseQuery = {
-      $or: [
-        { userId: req.user._id },
-        { 'participants.email': req.user.email }
+      $and: [
+        {
+          $or: [
+            { userId: req.user._id },
+            { 'participants.email': req.user.email }
+          ]
+        },
+        { hiddenFor: { $ne: req.user._id } }
       ]
     };
     
@@ -283,17 +288,21 @@ export const updateMeeting = async (req, res) => {
 // ─── DELETE /api/meetings/:id ───────────────────────────────
 export const deleteMeeting = async (req, res) => {
   try {
-    const result = await Meeting.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    if (!result) return res.status(404).json({ error: 'Meeting not found' });
+    const meeting = await Meeting.findOne({
+      _id: req.params.id,
+      $or: [
+        { userId: req.user._id },
+        { 'participants.email': req.user.email }
+      ]
+    });
+    if (!meeting) return res.status(404).json({ error: 'Meeting not found' });
     
-    // Notify participants via WebSocket to update their dashboards
-    if (result.participants && result.participants.length > 0) {
-      result.participants.forEach(p => {
-        if (p.email) io.to(`dashboard-${p.email.toLowerCase()}`).emit('dashboard-update');
-      });
+    if (!meeting.hiddenFor.includes(req.user._id)) {
+      meeting.hiddenFor.push(req.user._id);
+      await meeting.save();
     }
-
-    res.json({ message: 'Meeting deleted' });
+    
+    res.json({ message: 'Meeting deleted from your history' });
   } catch (err) {
     console.error('Delete meeting error:', err);
     res.status(500).json({ error: 'Failed to delete meeting' });
@@ -357,13 +366,15 @@ export const sendInvites = async (req, res) => {
 // ─── DELETE /api/meetings/history/clear ────────────────────
 export const clearHistory = async (req, res) => {
   try {
-    // 1. Delete all meetings where the user is the host
-    await Meeting.deleteMany({ userId: req.user._id });
-
-    // 2. Remove the user from the participants list of meetings where they are an invitee
     await Meeting.updateMany(
-      { 'participants.email': req.user.email },
-      { $pull: { participants: { email: req.user.email } } }
+      {
+        $or: [
+          { userId: req.user._id },
+          { 'participants.email': req.user.email }
+        ],
+        hiddenFor: { $ne: req.user._id }
+      },
+      { $push: { hiddenFor: req.user._id } }
     );
 
     res.json({ message: 'History cleared successfully' });

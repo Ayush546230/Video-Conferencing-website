@@ -46,6 +46,7 @@ const meetingSchema = new mongoose.Schema(
     hostJoined: { type: Boolean, default: false },
     isPrivate: { type: Boolean, default: false },
     isConsultation: { type: Boolean, default: false },
+    hiddenFor: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,
